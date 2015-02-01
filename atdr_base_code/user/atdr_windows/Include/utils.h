@@ -1,0 +1,1 @@
+int ebdr_log_setup(int log_pid, char *file_name);

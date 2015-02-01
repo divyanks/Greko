@@ -1,0 +1,1 @@
+#define CMD_LEN 64

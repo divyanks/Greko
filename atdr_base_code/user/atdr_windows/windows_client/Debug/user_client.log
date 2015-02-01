@@ -1,0 +1,97 @@
+﻿Build started 2/1/2015 2:38:14 PM.
+Project "C:\Users\Administrator\Desktop\ATDR\Greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\user_client.vcxproj" on node 2 (Rebuild target(s)).
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I..\Include /I"C:\Program Files (x86)\MySQL\MySQL Server 5.1\include" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /D CLIENT /D _CRT_SECURE_NO_WARNINGS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:prompt atdr_bitmap_client.c atdr_bitmap_server.c atdr_bitmap_user.c atdr_conn.c atdr_conn_client.c atdr_conn_server.c atdr_daemon.c atdr_db.c atdr_disk.c atdr_disk_source.c atdr_disk_target.c atdr_io_engine.c atdr_io_engine_client.c atdr_io_engine_server.c atdr_partner.c atdr_partner_client.c atdr_partner_server.c atdr_recovery.c atdr_relation.c atdr_relation_client.c atdr_relation_server.c atdr_replication.c atdr_replication_client.c atdr_replication_header.c atdr_replication_server.c atdr_replic_header_client.c atdr_replic_header_server.c atdr_resync.c atdr_utils.c replic_client.c replic_server.c
+  replic_server.c
+  replic_client.c
+  atdr_utils.c
+  atdr_resync.c
+  atdr_replic_header_server.c
+  atdr_replic_header_client.c
+  atdr_replication_server.c
+  atdr_replication_header.c
+  atdr_replication_client.c
+  atdr_replication.c
+  atdr_relation_server.c
+  atdr_relation_client.c
+  atdr_relation.c
+  atdr_recovery.c
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_recovery.c(48): warning C4133: 'function' : incompatible types - from 'linger *' to 'const char *'
+  atdr_partner_server.c
+  atdr_partner_client.c
+  atdr_partner.c
+  atdr_io_engine_server.c
+  atdr_io_engine_client.c
+  atdr_io_engine.c
+  Generating Code...
+  Compiling...
+  atdr_disk_target.c
+  atdr_disk_source.c
+  atdr_disk.c
+  atdr_db.c
+c:\program files (x86)\microsoft visual studio 12.0\vc\include\math.h(289): warning C4005: 'isnan' : macro redefinition
+          c:\program files (x86)\mysql\mysql server 5.1\include\config-win.h(160) : see previous definition of 'isnan'
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_db.c(29): warning C4273: '_errno' : inconsistent dll linkage
+          c:\program files (x86)\microsoft visual studio 12.0\vc\include\stdlib.h(245) : see previous definition of '_errno'
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_db.c(654): warning C4013: 'mkdisk_from_db_on_client' undefined; assuming extern returning int
+  atdr_daemon.c
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_daemon.c(143): warning C4020: 'stop_work' : too many actual parameters
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_daemon.c(693): warning C4047: '!=' : 'int [2048]' differs in levels of indirection from 'int'
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_daemon.c(759): warning C4022: 'CreateThread' : pointer mismatch for actual parameter 4
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_daemon.c(1016): warning C4022: 'WaitForSingleObject' : pointer mismatch for actual parameter 1
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_daemon.c(1026): warning C4047: 'function' : 'LPDWORD' differs in levels of indirection from 'HANDLE *'
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_daemon.c(1026): warning C4024: 'CreateThread' : different types for formal and actual parameter 6
+  atdr_conn_server.c
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_conn_server.c(129): warning C4133: 'function' : incompatible types - from 'timeval *' to 'const char *'
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_conn_server.c(137): warning C4133: 'function' : incompatible types - from 'int *' to 'const char *'
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_conn_server.c(205): warning C4047: 'function' : 'LPDWORD' differs in levels of indirection from 'HANDLE (*)[2048]'
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_conn_server.c(205): warning C4024: 'CreateThread' : different types for formal and actual parameter 6
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_conn_server.c(266): warning C4133: 'function' : incompatible types - from 'linger *' to 'const char *'
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_conn_server.c(400): warning C4133: 'initializing' : incompatible types - from 'void (__cdecl *)(ebdr_conn_t *,char *,int)' to 'int (__cdecl *)(ebdr_connection *,char *,int)'
+  atdr_conn_client.c
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_conn_client.c(68): warning C4133: 'function' : incompatible types - from 'timeval *' to 'const char *'
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_conn_client.c(74): warning C4133: 'function' : incompatible types - from 'timeval *' to 'const char *'
+c:\users\administrator\desktop\atdr\greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\atdr_conn_client.c(82): warning C4133: 'function' : incompatible types - from 'int *' to 'const char *'
+  atdr_conn.c
+  atdr_bitmap_user.c
+  atdr_bitmap_server.c
+  atdr_bitmap_client.c
+  Generating Code...
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Administrator\Desktop\ATDR\Greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\Debug\user_client.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Program Files (x86)\MySQL\MySQL Server 5.1\lib\opt" libmysql.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Administrator\Desktop\ATDR\Greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\Debug\user_client.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Administrator\Desktop\ATDR\Greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\Debug\user_client.lib" /MACHINE:X86 Debug\atdr_bitmap_client.obj
+  Debug\atdr_bitmap_server.obj
+  Debug\atdr_bitmap_user.obj
+  Debug\atdr_conn.obj
+  Debug\atdr_conn_client.obj
+  Debug\atdr_conn_server.obj
+  Debug\atdr_daemon.obj
+  Debug\atdr_db.obj
+  Debug\atdr_disk.obj
+  Debug\atdr_disk_source.obj
+  Debug\atdr_disk_target.obj
+  Debug\atdr_io_engine.obj
+  Debug\atdr_io_engine_client.obj
+  Debug\atdr_io_engine_server.obj
+  Debug\atdr_partner.obj
+  Debug\atdr_partner_client.obj
+  Debug\atdr_partner_server.obj
+  Debug\atdr_recovery.obj
+  Debug\atdr_relation.obj
+  Debug\atdr_relation_client.obj
+  Debug\atdr_relation_server.obj
+  Debug\atdr_replication.obj
+  Debug\atdr_replication_client.obj
+  Debug\atdr_replication_header.obj
+  Debug\atdr_replication_server.obj
+  Debug\atdr_replic_header_client.obj
+  Debug\atdr_replic_header_server.obj
+  Debug\atdr_resync.obj
+  Debug\atdr_utils.obj
+  Debug\replic_client.obj
+  Debug\replic_server.obj
+  user_client.vcxproj -> C:\Users\Administrator\Desktop\ATDR\Greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\Debug\user_client.exe
+Done Building Project "C:\Users\Administrator\Desktop\ATDR\Greko\atdr_base_code\atdr_base_code\user\atdr_windows\windows_client\user_client.vcxproj" (Rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:02:06.58

@@ -1,0 +1,17 @@
+====================================================================================================================================
+#			Server																Client
+====================================================================================================================================
+1	insmod kernel/ebdr.ko														insmod kernel/ebdr.ko
+2	./ebdrds																	./ebdrdc
+3	./ebdradm --create /dev/vg01/lv20 163840 16384	
+4	./ebdradm --wait	
+5																				./ebdradm --mkpartner 172.16.128.215 50
+6	./ebdradm --mkrelation 0 0  /dev/vg01/lv20 16384 320 8	
+7																			./ebdradm --mkrelationpeer 0 1 /dev/vg01/lv20 16384 320 8
+8	mkfs.ext3 /dev/ebdr1   	
+9	lvcreate --size 256MB --snapshot --name /dev/vg01/snp_20 /dev/vg01/lv20	
+10																				./ebdradm --snap /dev/vg01/snp_20 0	
+11																				./ebdradm --metadata 0
+12																				./ebdradm --resync 0   
+13																				./ebdradm --pause 0
+14																				./ebdradm --resume 0

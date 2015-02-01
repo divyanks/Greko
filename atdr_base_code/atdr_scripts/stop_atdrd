@@ -1,0 +1,2 @@
+ps -ef | grep ebdrd | cut -f7 -d' ' |xargs kill -9
+

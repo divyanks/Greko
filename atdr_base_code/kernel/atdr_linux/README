@@ -1,0 +1,10 @@
+------------
+    EBDR
+------------
+
+1. Created virtual device "ebdr"
+2. Hard coded backing device with "/dev/sdc"
+3. Forwarded I/O via ebdr to backing device [sdc]
+4. Created 8 bytes bitmaps and updated it
+5. Written buffer to sectors on disk
+6. Framework of kernel thread (start & stop)
