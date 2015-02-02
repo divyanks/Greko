@@ -15,7 +15,7 @@ void partner_server_obj_create(partner_t *partner_obj)
 	}
 	else
 	{
-		ebdr_log(EBDR_INFO, "Max partner server objects reached! \n");
+		atdr_log(ATDR_INFO, "Max partner server objects reached! \n");
 		stop_work("[partner_server_obj_create] man partner server objects reached");
 	}
 }
@@ -37,21 +37,21 @@ int get_new_partner_server_id(void)
 void server_list_partners(void)
 {
 	int i;
-	ebdr_log(EBDR_INFO, "\n+----------------------------------------------------------------+\n");
-	ebdr_log(EBDR_INFO, "|              SERVER PARTNERS                                   |\n");
-	ebdr_log(EBDR_INFO, "+----------------------------------------------------------------+\n");
-	ebdr_log(EBDR_INFO, "| Partner ID    |  IP Address    | Bandwidth     | Socket Number |\n");
-	ebdr_log(EBDR_INFO, "+----------------------------------------------------------------+\n");
+	atdr_log(ATDR_INFO, "\n+----------------------------------------------------------------+\n");
+	atdr_log(ATDR_INFO, "|              SERVER PARTNERS                                   |\n");
+	atdr_log(ATDR_INFO, "+----------------------------------------------------------------+\n");
+	atdr_log(ATDR_INFO, "| Partner ID    |  IP Address    | Bandwidth     | Socket Number |\n");
+	atdr_log(ATDR_INFO, "+----------------------------------------------------------------+\n");
 
 	for(i = 0; i < ps_count; i++)
 	{
 		if(all_partner_servers[i].obj_state == PARTNER_OBJ_IN_USE || all_partner_servers[i].obj_state == PARTNER_OBJ_RELEASED)
 		{
-			ebdr_log(EBDR_INFO, "|\t%d\t| %s\t | %lu\t\t |  %d\t\t |\n", all_partner_servers[i].id, 
+			atdr_log(ATDR_INFO, "|\t%d\t| %s\t | %lu\t\t |  %d\t\t |\n", all_partner_servers[i].id, 
 					all_partner_servers[i].ip,  all_partner_servers[i].bandwidth, all_partner_servers[i].socket_fd);
 		}
 	}
-	ebdr_log(EBDR_INFO, "+----------------------------------------------------------------+\n");
+	atdr_log(ATDR_INFO, "+----------------------------------------------------------------+\n");
 }
 
 int get_partner_server_by_id(int id)
@@ -74,7 +74,7 @@ int is_server_partner_id_valid(int pid)
 	{
 		if(all_partner_servers[i].id == pid)
 		{
-			ebdr_log(EBDR_INFO, "[is_server_pid_valid] server partner id [%d] is valid\n", pid);
+			atdr_log(ATDR_INFO, "[is_server_pid_valid] server partner id [%d] is valid\n", pid);
 			return 1;
 		}
 	}
@@ -90,9 +90,9 @@ int make_partner_server(char *ip, unsigned long int bandwidth, int sfd, int pid)
 		strcpy(all_partner_servers[pid].ip, ip);
 		all_partner_servers[pid].bandwidth = bandwidth;
 		all_partner_servers[pid].socket_fd = sfd;
-		insert_into_partner(pid, PARTNER_OBJ_IN_USE, ip, bandwidth, "ebdrdbs"); 
+		insert_into_partner(pid, PARTNER_OBJ_IN_USE, ip, bandwidth, "atdrdbs"); 
 		ps_count++;
-		ebdr_log(EBDR_INFO, "[make_partner_server] partnership id=%d ip=%s bandwidth=%lu\n", all_partner_servers[pid].id,
+		atdr_log(ATDR_INFO, "[make_partner_server] partnership id=%d ip=%s bandwidth=%lu\n", all_partner_servers[pid].id,
 				all_partner_servers[pid].ip, all_partner_servers[pid].bandwidth);
 		return pid;
 }
@@ -104,8 +104,8 @@ int mkpartner_from_db_on_server()
 
 void partner_server_obj_destroy(int pid)
 {
-	ebdr_log(EBDR_INFO, "[partner_server_destroy] releasing pid :%d\n", pid);
-	ebdr_log(EBDR_INFO, "[partner_server_destroy] closing server connfd: [%d]\n", all_partner_servers[pid].socket_fd);
+	atdr_log(ATDR_INFO, "[partner_server_destroy] releasing pid :%d\n", pid);
+	atdr_log(ATDR_INFO, "[partner_server_destroy] closing server connfd: [%d]\n", all_partner_servers[pid].socket_fd);
 	closesocket(all_partner_servers[pid].socket_fd);
 	memset(&all_partner_servers[pid], '\0', sizeof(partner_t));
 	all_partner_servers[pid].obj_state = PARTNER_OBJ_RELEASED;

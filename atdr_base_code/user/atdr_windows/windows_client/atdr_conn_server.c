@@ -46,10 +46,10 @@ cmdFun_t cmdMap[] =
 HANDLE send_recv_tid[MAX_PID];
 
 
-static void ebdr_conn_server_init(int server_pid)
+static void atdr_conn_server_init(int server_pid)
 {
 	/* Assign server ops */
-	ebdr_conn_server[server_pid].conn_ops = &server_conn_ops;
+	atdr_conn_server[server_pid].conn_ops = &server_conn_ops;
 }
 
 void *send_recv_handler(void *ptr)
@@ -62,25 +62,25 @@ void *send_recv_handler(void *ptr)
 	server_pid = ((struct sockfd_pid *)ptr)->pid;
 
 	log_pid = MAX_DISKS + CNTRL_THREADS - 2;
-	ebdr_log_setup(log_pid, SEND_RCV_LOG);
+	atdr_log_setup(log_pid, SEND_RCV_LOG);
 
-	ebdr_log(EBDR_INFO, "[send_recv_handler] Thread for client pid: %d sock_fd=%d\n", server_pid, sock_fd);
+	atdr_log(ATDR_INFO, "[send_recv_handler] Thread for client pid: %d sock_fd=%d\n", server_pid, sock_fd);
 
-	ebdr_connection_init(EBDR_CONN_SERVER, server_pid);
-	// ebdr_conn_server[server_pid].conn_ops->do_ebdr_conn_setup(&ebdr_conn_server[server_pid], NULL, server_pid);
+	atdr_connection_init(ATDR_CONN_SERVER, server_pid);
+	// atdr_conn_server[server_pid].conn_ops->do_atdr_conn_setup(&atdr_conn_server[server_pid], NULL, server_pid);
 
 	/*
-	ebdrlog_fp = fopen(SEND_RCV_LOG, "a+");
+	atdrlog_fp = fopen(SEND_RCV_LOG, "a+");
 
-	ebdr_log(INFO, "[send_recv_handler] Thread for client fd: %d\n", *(int *)newsockfd);
-	ebdr_conn_server[cs_count].conn_fd = *(int *)newsockfd;
-	ebdr_conn_server[cs_count].ebdr_conn_state = EBDR_CONN_CONNECTED;
+	atdr_log(INFO, "[send_recv_handler] Thread for client fd: %d\n", *(int *)newsockfd);
+	atdr_conn_server[cs_count].conn_fd = *(int *)newsockfd;
+	atdr_conn_server[cs_count].atdr_conn_state = ATDR_CONN_CONNECTED;
 	*/
-	ebdr_conn_server[server_pid].conn_fd = sock_fd;
-	ebdr_conn_server[server_pid].ebdr_conn_state = EBDR_CONN_CONNECTED;
+	atdr_conn_server[server_pid].conn_fd = sock_fd;
+	atdr_conn_server[server_pid].atdr_conn_state = ATDR_CONN_CONNECTED;
 
-	ebdr_conn_server[server_pid].conn_ops->do_ebdr_conn_recv(&rep_hdr_rcvd,
-		sizeof(replic_header), ebdr_conn_server[server_pid].conn_fd, PROTO_TYPE, server_pid);
+	atdr_conn_server[server_pid].conn_ops->do_atdr_conn_recv(&rep_hdr_rcvd,
+		sizeof(replic_header), atdr_conn_server[server_pid].conn_fd, PROTO_TYPE, server_pid);
 	return 0;
 }
 
@@ -100,27 +100,27 @@ void *replic_thread_init(void *args)
 
 	log_pid = MAX_DISKS + CNTRL_THREADS - 2;
 
-	ebdr_log_setup(log_pid, REPLIC_THREAD_LOG);
+	atdr_log_setup(log_pid, REPLIC_THREAD_LOG);
 
-	ebdr_log(EBDR_INFO, "Server waiting for new connection: \n");
+	atdr_log(ATDR_INFO, "Server waiting for new connection: \n");
 	while (1)
 	{
-		ebdr_conn_server[server_pid].ebdr_conn_state = EBDR_CONN_WAIT_FOR_CLIENT;
+		atdr_conn_server[server_pid].atdr_conn_state = ATDR_CONN_WAIT_FOR_CLIENT;
 		cliLen = sizeof(cliAddr);
 
-		newSockFd = accept(ebdr_conn_server[server_pid].sockFd, (struct sockaddr *) &cliAddr, &cliLen);
+		newSockFd = accept(atdr_conn_server[server_pid].sockFd, (struct sockaddr *) &cliAddr, &cliLen);
 		if (newSockFd < 0)
 		{
-			ebdr_log(EBDR_INFO, "[accept] newsockfd = %d listenfd[%d] : [%d]\n", newSockFd, server_pid,
-				ebdr_conn_server[server_pid].sockFd);
+			atdr_log(ATDR_INFO, "[accept] newsockfd = %d listenfd[%d] : [%d]\n", newSockFd, server_pid,
+				atdr_conn_server[server_pid].sockFd);
 			stop_work("accept Error\n");
 		}
 		else
 		{
-			ebdr_log(EBDR_INFO, "Connected to client: %s[%d]\n", inet_ntoa(cliAddr.sin_addr), cliAddr.sin_port);
+			atdr_log(ATDR_INFO, "Connected to client: %s[%d]\n", inet_ntoa(cliAddr.sin_addr), cliAddr.sin_port);
 
-			ebdr_log(EBDR_INFO, "[accept] server_pid = %d\n", server_pid);
-			ebdr_log(EBDR_INFO, "[accept] newsockfd = %d listenfd[%d]: %d\n", newSockFd, server_pid, ebdr_conn_server[server_pid].sockFd);
+			atdr_log(ATDR_INFO, "[accept] server_pid = %d\n", server_pid);
+			atdr_log(ATDR_INFO, "[accept] newsockfd = %d listenfd[%d]: %d\n", newSockFd, server_pid, atdr_conn_server[server_pid].sockFd);
 
 			client_connected = 1;
 			/* Set the timeout to 30 seconds. */
@@ -128,17 +128,17 @@ void *replic_thread_init(void *args)
 			timeout.tv_usec = 0;
 			if (setsockopt(newSockFd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) != 0)
 			{
-				ebdr_log(ERROR, "Could not set send timeout\n");
+				atdr_log(ERROR, "Could not set send timeout\n");
 			}
 
 			/* Set the option active */
 			int optval = 1;
 			int optlen = sizeof(optval);
 			if (setsockopt(newSockFd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
-				ebdr_log(ERROR, "Could not set keepalive timeout\n");
+				atdr_log(ERROR, "Could not set keepalive timeout\n");
 			}
 
-			ebdr_conn_server[MAX_CONN + 1].conn_fd = newSockFd;
+			atdr_conn_server[MAX_CONN + 1].conn_fd = newSockFd;
 
 
 			num_rows = mkpartner_from_db_on_server();
@@ -153,12 +153,12 @@ void *replic_thread_init(void *args)
 			{
 				for(pid = 0; pid <= num_rows; pid++)
 				{
-					if((ebdr_conn_server[pid].obj_state == CONN_OBJ_PAUSE) && (sock_recovery[pid] == 1))
+					if((atdr_conn_server[pid].obj_state == CONN_OBJ_PAUSE) && (sock_recovery[pid] == 1))
 					{
-						ebdr_log(EBDR_INFO, "[replic_thread_init] <<<<<< Changing conn server obj state to RESUME <<<<<<\n");
-						memcpy(&ebdr_conn_server[pid], &ebdr_conn_server[server_pid], sizeof(ebdr_conn_t));
+						atdr_log(ATDR_INFO, "[replic_thread_init] <<<<<< Changing conn server obj state to RESUME <<<<<<\n");
+						memcpy(&atdr_conn_server[pid], &atdr_conn_server[server_pid], sizeof(atdr_conn_t));
 						all_partner_servers[pid].socket_fd = newSockFd;
-						ebdr_conn_server[pid].obj_state = CONN_OBJ_RESUME;
+						atdr_conn_server[pid].obj_state = CONN_OBJ_RESUME;
 						sockfd_pid_var[pid].pid = pid;
 						sock_recovery[pid] = 0;
 						printf("[replic_thread_init] after conn obj resume pid = %d\n", pid);
@@ -170,11 +170,11 @@ void *replic_thread_init(void *args)
 					if ((client_connected == 1) && (recovery_mode[pid] == 1) &&
 						(all_partner_servers[pid].obj_state == PARTNER_OBJ_IN_USE))
 					{
-						memcpy(&ebdr_conn_server[pid], &ebdr_conn_server[server_pid], sizeof(ebdr_conn_t));
+						memcpy(&atdr_conn_server[pid], &atdr_conn_server[server_pid], sizeof(atdr_conn_t));
 						all_partner_servers[pid].socket_fd = newSockFd;
 						sockfd_pid_var[pid].pid = pid;
 						printf("[replic_thread_init] sockfd_pid_var[%d].pid = %d\n", pid, sockfd_pid_var[pid].pid);
-						printf("[replic_thread_init] conn obj state = %d\n", ebdr_conn_server[pid].obj_state);
+						printf("[replic_thread_init] conn obj state = %d\n", atdr_conn_server[pid].obj_state);
 			 			all_partner_servers[pid].obj_state = PARTNER_OBJ_RECOVERY; /* multi */ 
 						client_connected = -1;
 						total_conn++;
@@ -207,7 +207,7 @@ void *replic_thread_init(void *args)
 			if (hndle == NULL)
 				printf("could not create replication thread, error: %d.\n", GetLastError());
 			else
-				ebdr_log(EBDR_INFO, "Replication thread creation successful\n");
+				atdr_log(ATDR_INFO, "Replication thread creation successful\n");
 			CloseHandle(hndle);
 		}
 	}
@@ -227,14 +227,14 @@ static void create_replication_thread(void)
 	if (hndle == NULL)
 		printf("could not create replication thread, error: %d.\n", GetLastError());
 	else
-		ebdr_log(EBDR_INFO, "Replication thread creation successful");
+		atdr_log(ATDR_INFO, "Replication thread creation successful");
 	
 	CloseHandle(hndle);
 }
 
 
 
-static void ebdr_conn_server_setup(ebdr_conn_t *ebdr_conn, char *ip_addr, int server_pid)
+static void atdr_conn_server_setup(atdr_conn_t *atdr_conn, char *ip_addr, int server_pid)
 {
 	WSADATA wsa;
 	SOCKET sockFd;
@@ -242,23 +242,23 @@ static void ebdr_conn_server_setup(ebdr_conn_t *ebdr_conn, char *ip_addr, int se
 	struct linger so_linger;
 	int ret;
 
-	ebdr_conn_server[server_pid].ebdr_conn_mode = EBDR_CONN_SERVER;
-	ebdr_conn_server[server_pid].ebdr_conn_state = EBDR_CONN_SETUP;
-	ebdr_conn_server[server_pid].obj_state = CONN_OBJ_IN_USE;
+	atdr_conn_server[server_pid].atdr_conn_mode = ATDR_CONN_SERVER;
+	atdr_conn_server[server_pid].atdr_conn_state = ATDR_CONN_SETUP;
+	atdr_conn_server[server_pid].obj_state = CONN_OBJ_IN_USE;
 
-	ebdr_log(EBDR_INFO, "\nInitialising Winsock...");
+	atdr_log(ATDR_INFO, "\nInitialising Winsock...");
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 	{
-		ebdr_log(EBDR_FATAL, "Failed. Error Code : %d", WSAGetLastError());
+		atdr_log(ATDR_FATAL, "Failed. Error Code : %d", WSAGetLastError());
 		stop_work("WSAStartup failed\n");
 	}
 
-	ebdr_log(EBDR_INFO, "Initialised.\n");
+	atdr_log(ATDR_INFO, "Initialised.\n");
 
 
 	if ((sockFd = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
 	{
-		ebdr_log(EBDR_ERROR, "Could not create socket : %d", WSAGetLastError());
+		atdr_log(ATDR_ERROR, "Could not create socket : %d", WSAGetLastError());
 	}
 
 	so_linger.l_onoff = 1; /* 1 = TRUE*/
@@ -269,38 +269,38 @@ static void ebdr_conn_server_setup(ebdr_conn_t *ebdr_conn, char *ip_addr, int se
 	srvAddr.sin_family = AF_INET;
 	srvAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	srvAddr.sin_port = htons(SRV_TCP_PORT);
-	ebdr_conn_server[server_pid].sockFd = sockFd;
+	atdr_conn_server[server_pid].sockFd = sockFd;
 
-	if (bind(ebdr_conn_server[server_pid].sockFd, (struct sockaddr *)&srvAddr, sizeof(srvAddr)) == SOCKET_ERROR)
+	if (bind(atdr_conn_server[server_pid].sockFd, (struct sockaddr *)&srvAddr, sizeof(srvAddr)) == SOCKET_ERROR)
 	{
-		ebdr_log(EBDR_FATAL, "Bind failed with error code : %d", WSAGetLastError());
+		atdr_log(ATDR_FATAL, "Bind failed with error code : %d", WSAGetLastError());
 		stop_work("Bind failed \n");
 	}
-	ebdr_log(EBDR_INFO, "Bind done");
+	atdr_log(ATDR_INFO, "Bind done");
 
-	if (listen(ebdr_conn_server[server_pid].sockFd, MAX_CONN) < 0)
+	if (listen(atdr_conn_server[server_pid].sockFd, MAX_CONN) < 0)
 	{
-		ebdr_log(EBDR_FATAL, "do_ebdr_conn_setup: Listen failed %d", WSAGetLastError());
+		atdr_log(ATDR_FATAL, "do_atdr_conn_setup: Listen failed %d", WSAGetLastError());
 		stop_work("Listen failed\n");
 	}
 
-	ebdr_log(EBDR_INFO, "[server_setup] listen fd: %d \n", ebdr_conn_server[server_pid].sockFd);
+	atdr_log(ATDR_INFO, "[server_setup] listen fd: %d \n", atdr_conn_server[server_pid].sockFd);
 	create_replication_thread();
 }
 
-static void ebdr_conn_server_cleanup(ebdr_conn_t *ebdr_conn)
+static void atdr_conn_server_cleanup(atdr_conn_t *atdr_conn)
 {
-	ebdr_log(EBDR_INFO, "ebdr_conn_cleanup\n");
+	atdr_log(ATDR_INFO, "atdr_conn_cleanup\n");
 }
 
 
-static void ebdr_conn_server_stop(ebdr_conn_t *ebdr_conn, int server_pid)
+static void atdr_conn_server_stop(atdr_conn_t *atdr_conn, int server_pid)
 {
-	ebdr_log(EBDR_INFO, "ebdr_conn_stop\n");
-	ebdr_conn_server[server_pid].ebdr_conn_state = EBDR_CONN_RELEASED;
+	atdr_log(ATDR_INFO, "atdr_conn_stop\n");
+	atdr_conn_server[server_pid].atdr_conn_state = ATDR_CONN_RELEASED;
 }
 
-int ebdr_conn_server_send(void *buf, int size, SOCKET sockfd, enum send_rcv_type_t send_recv_type)
+int atdr_conn_server_send(void *buf, int size, SOCKET sockfd, enum send_rcv_type_t send_recv_type)
 {
 	replic_header *rep_hdr_rcvd;
 	int i;
@@ -317,7 +317,7 @@ int ebdr_conn_server_send(void *buf, int size, SOCKET sockfd, enum send_rcv_type
 	return 0;
 }
 
-static int ebdr_conn_server_recv(void *buf, int size, SOCKET sockfd, enum send_rcv_type_t send_recv, int pid)
+static int atdr_conn_server_recv(void *buf, int size, SOCKET sockfd, enum send_rcv_type_t send_recv, int pid)
 {
 	int i, n;
 	unsigned long int grain_index = 0, chunk_index = 0;
@@ -336,17 +336,17 @@ static int ebdr_conn_server_recv(void *buf, int size, SOCKET sockfd, enum send_r
 			n = recv(sockfd, (char *)rep_hdr_rcvd, sizeof(replic_header), 0);
 			if (n < 0)
 			{
-				ebdr_log(ERROR, "stopped receiving for sockfd:[%d] n = %d opcode:%d\n", sockfd, n, rep_hdr_rcvd->opcode);
+				atdr_log(ERROR, "stopped receiving for sockfd:[%d] n = %d opcode:%d\n", sockfd, n, rep_hdr_rcvd->opcode);
 				if ((rep_hdr_rcvd->opcode == REMOVE_PARTNER) && (n < 0))
 				{
-					ebdr_log(ERROR, "sockfd[%d] already closed by remove partner \n", sockfd);
+					atdr_log(ERROR, "sockfd[%d] already closed by remove partner \n", sockfd);
 					return 1;
 				}
 #if 1
 				if ((n < 0) && (rep_hdr_rcvd->opcode == DATA))
 				{
 					/* make conn server object as paused */
-					ebdr_log(EBDR_INFO, "[conn_server_recv] recv'd -1 PAUSING conn server object...\n");
+					atdr_log(ATDR_INFO, "[conn_server_recv] recv'd -1 PAUSING conn server object...\n");
 #if 0
 					int num_rows = mkpartner_from_db_on_server();
 					int i;
@@ -359,13 +359,13 @@ static int ebdr_conn_server_recv(void *buf, int size, SOCKET sockfd, enum send_r
 
 					partner_created[rep_hdr_rcvd->partner_id] = 0;
 
-					shutdown(ebdr_conn_server[rep_hdr_rcvd->partner_id].conn_fd, SD_SEND);
-					closesocket(ebdr_conn_server[rep_hdr_rcvd->partner_id].conn_fd);
-					ebdr_conn_server[rep_hdr_rcvd->partner_id].conn_fd = -1;
+					shutdown(atdr_conn_server[rep_hdr_rcvd->partner_id].conn_fd, SD_SEND);
+					closesocket(atdr_conn_server[rep_hdr_rcvd->partner_id].conn_fd);
+					atdr_conn_server[rep_hdr_rcvd->partner_id].conn_fd = -1;
 					Sleep(60);
-					ebdr_conn_server[rep_hdr_rcvd->partner_id].obj_state = CONN_OBJ_PAUSE;
+					atdr_conn_server[rep_hdr_rcvd->partner_id].obj_state = CONN_OBJ_PAUSE;
 					sock_recovery[rep_hdr_rcvd->partner_id] = 1;
-					ebdr_log(EBDR_INFO, "[conn_server_recv] ==== closing send_recv_thread =====\n");
+					atdr_log(ATDR_INFO, "[conn_server_recv] ==== closing send_recv_thread =====\n");
 					partner_created[rep_hdr_rcvd->partner_id] = 0; 
 
 					return 1;//Abandon the send-recv process
@@ -389,13 +389,13 @@ static int ebdr_conn_server_recv(void *buf, int size, SOCKET sockfd, enum send_r
 	return 0;
 }
 
-struct ebdr_conn_operations server_conn_ops = 
+struct atdr_conn_operations server_conn_ops = 
 {
-	.do_ebdr_conn_init 		= ebdr_conn_server_init,
-	.do_ebdr_conn_setup = ebdr_conn_server_setup,
-	.do_ebdr_conn_send = ebdr_conn_server_send,
-	.do_ebdr_conn_recv = ebdr_conn_server_recv,
-	.do_ebdr_conn_stop = ebdr_conn_server_stop,
-	.do_ebdr_conn_cleanup = ebdr_conn_server_cleanup
+	.do_atdr_conn_init 		= atdr_conn_server_init,
+	.do_atdr_conn_setup = atdr_conn_server_setup,
+	.do_atdr_conn_send = atdr_conn_server_send,
+	.do_atdr_conn_recv = atdr_conn_server_recv,
+	.do_atdr_conn_stop = atdr_conn_server_stop,
+	.do_atdr_conn_cleanup = atdr_conn_server_cleanup
 };
 

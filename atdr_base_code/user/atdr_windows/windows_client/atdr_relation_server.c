@@ -10,11 +10,11 @@ void relation_server_obj_create(struct relation *relation_obj, int rid)
 {
 	if(rid < MAX_RELATIONS)
 	{
-		ebdr_log(EBDR_INFO, "[relation_server] created relation_server_obj \n");
+		atdr_log(ATDR_INFO, "[relation_server] created relation_server_obj \n");
 	}
 	else
 	{
-		ebdr_log(EBDR_INFO, "Max relation server objects reached! \n");
+		atdr_log(ATDR_INFO, "Max relation server objects reached! \n");
 		stop_work("[relation_server_obj_create] max relation server objects reached ");
 	}
 }
@@ -49,23 +49,23 @@ int make_relation_server(int role, int pid, char *disk)
 void server_list_relations(void)
 {
 	int i;
-	ebdr_log(EBDR_INFO, "\n+-----------------------------------------------------------------+\n");
-	ebdr_log(EBDR_INFO, "|                       SERVER RELATIONS                          |\n");
-	ebdr_log(EBDR_INFO, "+-----------------------------------------------------------------+\n");
-	ebdr_log(EBDR_INFO, "| Relation Role | Relation ID    |  Partner ID    | Device Name   |\n");
-	ebdr_log(EBDR_INFO, "+-----------------------------------------------------------------+\n");
+	atdr_log(ATDR_INFO, "\n+-----------------------------------------------------------------+\n");
+	atdr_log(ATDR_INFO, "|                       SERVER RELATIONS                          |\n");
+	atdr_log(ATDR_INFO, "+-----------------------------------------------------------------+\n");
+	atdr_log(ATDR_INFO, "| Relation Role | Relation ID    |  Partner ID    | Device Name   |\n");
+	atdr_log(ATDR_INFO, "+-----------------------------------------------------------------+\n");
 
 	for(i = 0; i < ps_count; i++)
 	{
 		if(all_relation_servers[i].obj_state == RELATION_OBJ_IN_USE)
 		{
-			ebdr_log(EBDR_INFO, "| %s \t| %d\t\t | %d\t\t  | %s\t  |\n",
+			atdr_log(ATDR_INFO, "| %s \t| %d\t\t | %d\t\t  | %s\t  |\n",
 					(all_relation_servers[i].role == 0)?"PRIMARY":"SECONDARY",
 					all_relation_servers[i].relation_id, all_relation_servers[i].partner_id,
 					all_relation_servers[i].device);
 		}
 	}
-	ebdr_log(EBDR_INFO, "+-----------------------------------------------------------------+\n");
+	atdr_log(ATDR_INFO, "+-----------------------------------------------------------------+\n");
 
 }
 
@@ -76,7 +76,7 @@ int mkrelation_from_db_on_server()
 
 void relation_server_obj_destroy(int rid)
 {
-	ebdr_log(EBDR_INFO, "[rel_server_destroy] Releasing relation_id = %d\n", rid);
+	atdr_log(ATDR_INFO, "[rel_server_destroy] Releasing relation_id = %d\n", rid);
 	//memset(&all_relation_servers[rid], '\0',sizeof(relation_t));
 	all_relation_servers[rid].obj_state = RELATION_OBJ_RELEASED;
 }

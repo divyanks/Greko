@@ -1,5 +1,5 @@
-#ifndef EBDR_REPLICATION_H
-#define EBDR_REPLICATION_H
+#ifndef ATDR_REPLICATION_H
+#define ATDR_REPLICATION_H
 
 // #include "atdr_replication_header.h" santhosh
 #include "atdr_conn.h"
@@ -26,33 +26,33 @@ enum rep_role_t
 	REP_REMOTE
 };
 
-struct ebdr_replication;
+struct atdr_replication;
 
-struct ebdr_replication_operations
+struct atdr_replication_operations
 {
 	void (*replic_obj_create)(int pid);  
-	void (*replic_obj_setup)(struct ebdr_replication *replic_obj, int pid);  
-	void (*replic_obj_destroy)(struct ebdr_replication *replic_obj);  
+	void (*replic_obj_setup)(struct atdr_replication *replic_obj, int pid);  
+	void (*replic_obj_destroy)(struct atdr_replication *replic_obj);  
 
 };
 
-extern struct ebdr_replication_operations replic_server_operations;
-extern struct ebdr_replication_operations replic_client_operations;
+extern struct atdr_replication_operations replic_server_operations;
+extern struct atdr_replication_operations replic_client_operations;
 
-struct ebdr_replication
+struct atdr_replication
 {
 	enum rep_role_t rep_role;
 	enum rep_state_t rep_state;
 	unsigned long int last_resynced_bit;
-	struct ebdr_connection *rep_conn;
+	struct atdr_connection *rep_conn;
     replic_header *rep_hdr; 
-	struct ebdr_disk *rep_disk;
-	struct ebdr_replication_operations *ops;
+	struct atdr_disk *rep_disk;
+	struct atdr_replication_operations *ops;
 };
 
-struct ebdr_replication replic_req;
-struct ebdr_replication replic_server_obj[MAX_REPLICATIONS];
-struct ebdr_replication replic_client_obj[MAX_REPLICATIONS];
+struct atdr_replication replic_req;
+struct atdr_replication replic_server_obj[MAX_REPLICATIONS];
+struct atdr_replication replic_client_obj[MAX_REPLICATIONS];
 int replication_init(enum rep_role_t rep_role, int pid);
 int mkresync_from_db_on_client();
 #endif

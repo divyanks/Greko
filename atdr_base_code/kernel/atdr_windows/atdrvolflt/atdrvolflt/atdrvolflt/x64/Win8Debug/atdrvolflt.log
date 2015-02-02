@@ -1,8 +1,8 @@
-﻿Build started 2/1/2015 2:33:43 AM.
-Project "C:\Users\Administrator\Desktop\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\atdrvolflt\atdrvolflt.vcxproj" on node 2 (Rebuild target(s)).
+﻿Build started 2/2/2015 5:53:53 PM.
+Project "C:\Users\Administrator\Desktop\Latest\Greko\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\atdrvolflt\atdrvolflt.vcxproj" on node 2 (Rebuild target(s)).
 StampInf:
   C:\Program Files (x86)\Windows Kits\8.1\bin\x86\stampinf.exe -d "*" -a "amd64" -v "*" -k "1.11" -u "1.11.0" -f x64\Win8Debug\atdrvolflt.inf 
-  Stamping x64\Win8Debug\atdrvolflt.inf [Version] section with DriverVer=02/01/2015,2.33.46.50
+  Stamping x64\Win8Debug\atdrvolflt.inf [Version] section with DriverVer=02/02/2015,17.53.54.102
 ClCompile:
   C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Ix64\Win8Debug\ /Zi /nologo /W4 /WX /Od /Oi /Oy- /D _WIN64 /D _AMD64_ /D AMD64 /D DEPRECATE_DDK_FUNCTIONS=1 /D MSC_NOOPT /D _WIN32_WINNT=0x0602 /D WINVER=0x0602 /D WINNT=1 /D NTDDI_VERSION=0x06020000 /D DBG=1 /GF /Gm- /Zp8 /GS /Gy /fp:precise /Zc:wchar_t- /Zc:forScope- /GR- /Fo"x64\Win8Debug\\" /Fd"x64\Win8Debug\vc120.pdb" /Gz /wd4748 /wd4603 /wd4627 /wd4986 /wd4987 /wd4996 /FI"C:\Program Files (x86)\Windows Kits\8.1\Include\Shared\warning.h" /errorReport:prompt /kernel -cbstring -d2epilogunwind /d1import_no_registry /d2AllowCompatibleILVersions /d2Zi+ ..\..\atdrvolflt.c ..\..\atdr_bitmap.cpp
   atdrvolflt.c
@@ -11,16 +11,16 @@ ClCompile:
   atdr_bitmap.cpp
   Generating Code...
 Link:
-  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Administrator\Desktop\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\x64\Win8Debug\atdrvolflt.sys" /VERSION:"6.3" /INCREMENTAL:NO /NOLOGO /WX /SECTION:"INIT,d" "C:\Program Files (x86)\Windows Kits\8.1\lib\win8\KM\x64\BufferOverflowFastFailK.lib" "C:\Program Files (x86)\Windows Kits\8.1\lib\win8\KM\x64\ntoskrnl.lib" "C:\Program Files (x86)\Windows Kits\8.1\lib\win8\KM\x64\hal.lib" "C:\Program Files (x86)\Windows Kits\8.1\lib\win8\KM\x64\wmilib.lib" /NODEFAULTLIB /MANIFEST:NO /DEBUG /PDB:"C:\Users\Administrator\Desktop\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\x64\Win8Debug\atdrvolflt.pdb" /SUBSYSTEM:NATIVE,"6.02" /Driver /OPT:REF /OPT:ICF /ENTRY:"GsDriverEntry" /RELEASE /IMPLIB:"C:\Users\Administrator\Desktop\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\x64\Win8Debug\atdrvolflt.lib" /MERGE:"_TEXT=.text;_PAGE=PAGE" /MACHINE:X64 /PROFILE /kernel /IGNORE:4198,4010,4037,4039,4065,4070,4078,4087,4089,4221,4108,4088,4218,4218,4235 /osversion:6.3 /pdbcompress /debugtype:pdata x64\Win8Debug\atdrvolflt.obj
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Administrator\Desktop\Latest\Greko\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\x64\Win8Debug\atdrvolflt.sys" /VERSION:"6.3" /INCREMENTAL:NO /NOLOGO /WX /SECTION:"INIT,d" "C:\Program Files (x86)\Windows Kits\8.1\lib\win8\KM\x64\BufferOverflowFastFailK.lib" "C:\Program Files (x86)\Windows Kits\8.1\lib\win8\KM\x64\ntoskrnl.lib" "C:\Program Files (x86)\Windows Kits\8.1\lib\win8\KM\x64\hal.lib" "C:\Program Files (x86)\Windows Kits\8.1\lib\win8\KM\x64\wmilib.lib" /NODEFAULTLIB /MANIFEST:NO /DEBUG /PDB:"C:\Users\Administrator\Desktop\Latest\Greko\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\x64\Win8Debug\atdrvolflt.pdb" /SUBSYSTEM:NATIVE,"6.02" /Driver /OPT:REF /OPT:ICF /ENTRY:"GsDriverEntry" /RELEASE /IMPLIB:"C:\Users\Administrator\Desktop\Latest\Greko\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\x64\Win8Debug\atdrvolflt.lib" /MERGE:"_TEXT=.text;_PAGE=PAGE" /MACHINE:X64 /PROFILE /kernel /IGNORE:4198,4010,4037,4039,4065,4070,4078,4087,4089,4221,4108,4088,4218,4218,4235 /osversion:6.3 /pdbcompress /debugtype:pdata x64\Win8Debug\atdrvolflt.obj
   x64\Win8Debug\atdr_bitmap.obj
-  atdrvolflt.vcxproj -> C:\Users\Administrator\Desktop\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\x64\Win8Debug\atdrvolflt.sys
+  atdrvolflt.vcxproj -> C:\Users\Administrator\Desktop\Latest\Greko\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\x64\Win8Debug\atdrvolflt.sys
 DriverTestSign:
   C:\Program Files (x86)\Windows Kits\8.1\bin\x86\signtool.exe sign /ph /sha1 "7F308BC431DC5AB6620412893F92E6EFD231B0FA" 
   Done Adding Additional Store
-  Successfully signed: C:\Users\Administrator\Desktop\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\x64\Win8Debug\atdrvolflt.sys
+  Successfully signed: C:\Users\Administrator\Desktop\Latest\Greko\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\x64\Win8Debug\atdrvolflt.sys
   
-Done Building Project "C:\Users\Administrator\Desktop\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\atdrvolflt\atdrvolflt.vcxproj" (Rebuild target(s)).
+Done Building Project "C:\Users\Administrator\Desktop\Latest\Greko\atdr_base_code\kernel\atdr_windows\atdrvolflt\atdrvolflt\atdrvolflt\atdrvolflt.vcxproj" (Rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:06.06
+Time Elapsed 00:00:06.81

@@ -1,5 +1,5 @@
-#ifndef __EBDR_RPLC_PROTOCOL_H 
-#define __EBDR_RPLC_PROTOCOL_H
+#ifndef __ATDR_RPLC_PROTOCOL_H 
+#define __ATDR_RPLC_PROTOCOL_H
 
 #define MAX_HDR 2048
 
@@ -87,4 +87,4 @@ replic_header replic_hdr_server_obj[MAX_HDR];
 replic_header replic_hdr_client_obj[MAX_HDR];
 void replication_header_init(enum rep_hdr_role_t role, int pid);
 
-#endif /*__EBDR_RPLC_PROTOCOL_H*/
+#endif /*__ATDR_RPLC_PROTOCOL_H*/

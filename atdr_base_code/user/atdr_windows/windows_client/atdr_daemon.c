@@ -37,9 +37,9 @@ int log_pid;
 char *log_path;
 
 char tmp_log_path[LOG_PATH_LEN];
-FILE * ebdrlog_fp;
+FILE * atdrlog_fp;
 
-struct ebdr_thread_t thread_params[MAX_DISKS + CNTRL_THREADS ];
+struct atdr_thread_t thread_params[MAX_DISKS + CNTRL_THREADS ];
 void restart_resync(int pid, unsigned long int bit_pos, enum rep_mode_t mode);
 DWORD resync_tid[MAX_DISKS];
 typedef struct IOCTL_INPUT
@@ -84,7 +84,7 @@ int prepare_and_send_ioctl_cmd(int cmd)
 	wcscat(&disk_name[4], tmp);
 	if (length <= 0)
 	{
-		ebdr_log(EBDR_ERROR, "Failed to convert to multibyte wide characters %d\n", GetLastError()); /* This print will change later */
+		atdr_log(ATDR_ERROR, "Failed to convert to multibyte wide characters %d\n", GetLastError()); /* This print will change later */
 		return -1;
 	}
 
@@ -92,11 +92,11 @@ int prepare_and_send_ioctl_cmd(int cmd)
 		hDevice = CreateFile(disk_name, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
 			OPEN_EXISTING, FILE_FLAG_NO_BUFFERING, NULL);
 
-		ebdr_log(EBDR_INFO, "Opened the file");
+		atdr_log(ATDR_INFO, "Opened the file");
 
 		if (hDevice == INVALID_HANDLE_VALUE) {
 
-			ebdr_log(EBDR_INFO, "Opened the file %d", GetLastError());
+			atdr_log(ATDR_INFO, "Opened the file %d", GetLastError());
 
 			exit(0);
 		}
@@ -105,26 +105,26 @@ int prepare_and_send_ioctl_cmd(int cmd)
 
 	try_again:
 
-		if (cmd == EBDRCTL_DEV_CREATE)
+		if (cmd == ATDRCTL_DEV_CREATE)
 		{
 			OUTPUT_CREATE out;
 
 		
 
 			bResult = DeviceIoControl(hDevice, cmd, &ioctl_obj, sizeof(IOCTL), &out, sizeof(OUTPUT_CREATE), &bytesReturned, NULL);
-			ebdr_log(EBDR_INFO, "after DeviceIoControl \n");
+			atdr_log(ATDR_INFO, "after DeviceIoControl \n");
 
-			//Set the bitmaps once EBDRCTL_DEV_CREATE happens
-			if (cmd == EBDRCTL_DEV_CREATE)
+			//Set the bitmaps once ATDRCTL_DEV_CREATE happens
+			if (cmd == ATDRCTL_DEV_CREATE)
 			{
-				ebdr_disk_src_obj[ds_count].active_bitmap = (unsigned long *)out.MappedUserAddress;
-				ebdr_disk_src_obj[ds_count].active_bitmap_backup = ebdr_disk_src_obj[ds_count].active_bitmap + ioctl_obj.u_bitmap_size / sizeof(ulong_t);
+				atdr_disk_src_obj[ds_count].active_bitmap = (unsigned long *)out.MappedUserAddress;
+				atdr_disk_src_obj[ds_count].active_bitmap_backup = atdr_disk_src_obj[ds_count].active_bitmap + ioctl_obj.u_bitmap_size / sizeof(ulong_t);
 			}
 		}
 		else {
 			OUTPUT_USER out;
 			bResult = DeviceIoControl(hDevice, cmd, &ioctl_obj, sizeof(IOCTL), &out, sizeof(OUTPUT_USER), &bytesReturned, NULL);
-			ebdr_log(EBDR_INFO, "after DeviceIoControl \n");
+			atdr_log(ATDR_INFO, "after DeviceIoControl \n");
 
 			//Only valid for GET_USER
 			// bmap user @ Output should be 0 first iteration and 1 in second iteration
@@ -136,7 +136,7 @@ int prepare_and_send_ioctl_cmd(int cmd)
 		{
 			if (retries < MAX_RETRIES) {
 				retries++;
-				ebdr_log(EBDR_ERROR, "failed to IOCTL retrying %d times\n", retries);
+				atdr_log(ATDR_ERROR, "failed to IOCTL retrying %d times\n", retries);
 				goto try_again;
 			}
 			else {
@@ -152,52 +152,52 @@ int prepare_and_send_ioctl_cmd(int cmd)
 
 void stop_work(char str[100])
 {
-	ebdr_log(EBDR_ERROR, " %s Error occured..Stopped !! errno = %d\n", str, errno);
+	atdr_log(ATDR_ERROR, " %s Error occured..Stopped !! errno = %d\n", str, errno);
 	exit(0); /* return a meaningful value*/
 }
 
-FILE * open_ebdr_clog()
+FILE * open_atdr_clog()
 {
-	//    FILE * ebdrlog_fp;
+	//    FILE * atdrlog_fp;
 
 	log_pid = MAX_DISKS + CNTRL_THREADS - 1;
 
-	ebdr_log_setup(log_pid, CLIENT_LOG);
+	atdr_log_setup(log_pid, CLIENT_LOG);
 
-	if (thread_params[log_pid].ebdrlog_fp == NULL)
+	if (thread_params[log_pid].atdrlog_fp == NULL)
 	{
 		stop_work("opening client log file failed ");
 	}
-	return thread_params[log_pid].ebdrlog_fp;
+	return thread_params[log_pid].atdrlog_fp;
 }
 
 
-FILE * open_ebdr_slog()
+FILE * open_atdr_slog()
 {
-	// FILE * ebdrlog_sfp;
+	// FILE * atdrlog_sfp;
 
 	log_pid = MAX_DISKS + CNTRL_THREADS - 1;
 
-	ebdr_log_setup(log_pid, SERVER_LOG);
+	atdr_log_setup(log_pid, SERVER_LOG);
 
-	if (thread_params[log_pid].ebdrlog_fp == NULL)
+	if (thread_params[log_pid].atdrlog_fp == NULL)
 	{
 		stop_work("opening sever log file failed ");
 	}
-	return thread_params[log_pid].ebdrlog_fp;
+	return thread_params[log_pid].atdrlog_fp;
 }
 
 
-void ebdr_logging()
+void atdr_logging()
 {
 #ifdef SERVER
-	ebdrlog_fp = open_ebdr_slog();
-	ebdr_log(EBDR_INFO, "client log file creation successful\n");
+	atdrlog_fp = open_atdr_slog();
+	atdr_log(ATDR_INFO, "client log file creation successful\n");
 #endif
 
 #ifdef CLIENT
-	ebdrlog_fp = open_ebdr_clog();
-	ebdr_log(EBDR_INFO, "client log file creation successful\n");
+	atdrlog_fp = open_atdr_clog();
+	atdr_log(ATDR_INFO, "client log file creation successful\n");
 #endif
 
 }
@@ -303,7 +303,7 @@ int make_relation_with_client(int partnerid, int role, char *src_disk, unsigned 
 {
 	int relation_id, relation_role;
 
-	ebdr_relation_init(EBDR_RELATION_SERVER, &all_relation_servers[partnerid], partnerid);
+	atdr_relation_init(ATDR_RELATION_SERVER, &all_relation_servers[partnerid], partnerid);
 	if (role == 0)
 	{
 		relation_role = RELATION_PRIMARY;
@@ -316,11 +316,11 @@ int make_relation_with_client(int partnerid, int role, char *src_disk, unsigned 
 	if (is_server_partner_id_valid(partnerid))
 	{
 		relation_id = all_relation_servers[partnerid].ops->make_relation(relation_role, partnerid, src_disk);
-		ebdr_log(EBDR_INFO, "[Daemon] relation_id = %d\n", relation_id);
+		atdr_log(ATDR_INFO, "[Daemon] relation_id = %d\n", relation_id);
 	}
 	else
 	{
-		ebdr_log(EBDR_INFO, "[Daemon] partner id[%d] is not valid. \n", partnerid);
+		atdr_log(ATDR_INFO, "[Daemon] partner id[%d] is not valid. \n", partnerid);
 		return -1;
 	}
 	replic_hdr_server_obj[partnerid].ops = &replic_hdr_server_ops;
@@ -329,7 +329,7 @@ int make_relation_with_client(int partnerid, int role, char *src_disk, unsigned 
 }
 
 
-static int ebdr_daemonize(void)
+static int atdr_daemonize(void)
 {
 	SC_HANDLE schSCManager, schService;
 
@@ -342,26 +342,26 @@ static int ebdr_daemonize(void)
 	// The executable for telnet is: C:\WINDOWS\system32\tlntsvr.exe
 
 #ifdef CLIENT
-	LPCTSTR lpszBinaryPathName = L"%SystemRoot%\\system32\\ebdrdc.exe";
+	LPCTSTR lpszBinaryPathName = L"%SystemRoot%\\system32\\atdrdc.exe";
 
 	// Service display name...
 
-	LPCTSTR lpszDisplayName = L"ebdrdc";
+	LPCTSTR lpszDisplayName = L"atdrdc";
 
 	// Registry Subkey
 
-	LPCTSTR lpszServiceName = L"ebdrdc";
+	LPCTSTR lpszServiceName = L"atdrdc";
 #endif
 #ifdef SERVER
-	LPCTSTR lpszBinaryPathName = L"%SystemRoot%\\system32\\ebdrds.exe";
+	LPCTSTR lpszBinaryPathName = L"%SystemRoot%\\system32\\atdrds.exe";
 
 	// Service display name...
 
-	LPCTSTR lpszDisplayName = L"ebdrds";
+	LPCTSTR lpszDisplayName = L"atdrds";
 
 	// Registry Subkey
 
-	LPCTSTR lpszServiceName = L"ebdrds";
+	LPCTSTR lpszServiceName = L"atdrds";
 #endif
 
 
@@ -493,7 +493,7 @@ int is_disk_created(char *disk)
 	IOCTL ioctl_obj_tmp;
 	memcpy(&ioctl_obj_tmp, &ioctl_obj, sizeof(ioctl_obj));
 
-	prepare_and_send_ioctl_cmd(EBDRCTL_BLKDEV_SEARCH);
+	prepare_and_send_ioctl_cmd(ATDRCTL_BLKDEV_SEARCH);
 	if (*((int *)&ioctl_obj))
 		ret = 1;
 	else
@@ -508,7 +508,7 @@ int is_disk_created(char *disk)
 
 int request_server_for_metadata(int client_pid)
 {
-	ebdr_user_bitmap_init(REMOTE, client_pid);
+	atdr_user_bitmap_init(REMOTE, client_pid);
 	replic_hdr_client_obj[client_pid].opcode = BITMAP_METADATA;
 	replic_hdr_client_obj[client_pid].partner_id = client_pid;
 
@@ -516,33 +516,33 @@ int request_server_for_metadata(int client_pid)
 	{
 		all_partner_clients[client_pid].obj_state = PARTNER_OBJ_IN_USE;
 		all_relation_clients[client_pid].obj_state = RELATION_OBJ_IN_USE;
-		ebdr_disk_target_obj[client_pid].obj_state = DISK_OBJ_IN_USE;
+		atdr_disk_target_obj[client_pid].obj_state = DISK_OBJ_IN_USE;
 
-		update_into_partner(client_pid, all_partner_clients[client_pid].obj_state, "ebdrdbc");
-		update_relation_state(client_pid, all_relation_clients[client_pid].obj_state, "ebdrdbc");
-		update_disk_state(client_pid, ebdr_disk_target_obj[client_pid].obj_state, "ebdrdbc");
+		update_into_partner(client_pid, all_partner_clients[client_pid].obj_state, "atdrdbc");
+		update_relation_state(client_pid, all_relation_clients[client_pid].obj_state, "atdrdbc");
+		update_disk_state(client_pid, atdr_disk_target_obj[client_pid].obj_state, "atdrdbc");
 	}
 
 	if (bitmap_client_obj[client_pid].obj_state != BITMAP_OBJ_PAUSE)
 	{
-		bitmap_client_obj[client_pid].ops->ebdr_bitmap_setup(ebdr_disk_target_obj[client_pid].bitmap, client_pid);
+		bitmap_client_obj[client_pid].ops->atdr_bitmap_setup(atdr_disk_target_obj[client_pid].bitmap, client_pid);
 
-		ebdr_log(EBDR_INFO, "[Daemon] partner_id:[%d] client_sock_fd[%d]\n", client_pid,
+		atdr_log(ATDR_INFO, "[Daemon] partner_id:[%d] client_sock_fd[%d]\n", client_pid,
 			all_partner_clients[client_pid].socket_fd);
 
-		replic_client_obj[client_pid].rep_conn->conn_ops->do_ebdr_conn_send(&replic_hdr_client_obj[client_pid],
+		replic_client_obj[client_pid].rep_conn->conn_ops->do_atdr_conn_send(&replic_hdr_client_obj[client_pid],
 			sizeof(replic_header), all_partner_clients[client_pid].socket_fd, PROTO_TYPE);
 
-		replic_client_obj[client_pid].rep_conn->conn_ops->do_ebdr_conn_recv(bitmap_client_obj[client_pid].bitmap_area,
+		replic_client_obj[client_pid].rep_conn->conn_ops->do_atdr_conn_recv(bitmap_client_obj[client_pid].bitmap_area,
 			bitmap_client_obj[client_pid].bitmap_size, all_partner_clients[client_pid].socket_fd, DATA_TYPE, client_pid);
 
-		ebdr_disk_target_obj[client_pid].bitmap = &bitmap_client_obj[client_pid];
-		//bitmap_client_obj[client_pid].ops->ebdr_bitmap_setup(ebdr_disk_target_obj[client_pid].bitmap, client_pid);
+		atdr_disk_target_obj[client_pid].bitmap = &bitmap_client_obj[client_pid];
+		//bitmap_client_obj[client_pid].ops->atdr_bitmap_setup(atdr_disk_target_obj[client_pid].bitmap, client_pid);
 
-		ebdr_log(EBDR_INFO, "[client_send_recv] received bitmap metadata[%d]:0x%lx for client[%d]\n", client_pid,
-			*(ebdr_disk_target_obj[client_pid].bitmap->bitmap_area),
+		atdr_log(ATDR_INFO, "[client_send_recv] received bitmap metadata[%d]:0x%lx for client[%d]\n", client_pid,
+			*(atdr_disk_target_obj[client_pid].bitmap->bitmap_area),
 			all_partner_clients[client_pid].socket_fd);
-		if (*(ebdr_disk_target_obj[client_pid].bitmap->bitmap_area) == 0)
+		if (*(atdr_disk_target_obj[client_pid].bitmap->bitmap_area) == 0)
 		{
 			return 0;
 		}
@@ -561,8 +561,8 @@ void make_partner_with_server(char *partner_ip, int bandwidth, char *disk, unsig
 	client_pid = get_new_partner_client_id();
 
 
-	ebdr_connection_init(EBDR_CONN_CLIENT, client_pid);
-	ebdr_conn_client[client_pid].conn_ops->do_ebdr_conn_setup(&ebdr_conn_client[client_pid], partner_ip, client_pid);
+	atdr_connection_init(ATDR_CONN_CLIENT, client_pid);
+	atdr_conn_client[client_pid].conn_ops->do_atdr_conn_setup(&atdr_conn_client[client_pid], partner_ip, client_pid);
 
 	replication_init(REP_REMOTE, client_pid);
 
@@ -570,14 +570,14 @@ void make_partner_with_server(char *partner_ip, int bandwidth, char *disk, unsig
 
 	if (client_pid < MAX_PARTNERS)
 	{
-		ebdr_partner_init(PARTNER_CLIENT, &all_partner_clients[client_pid]);
+		atdr_partner_init(PARTNER_CLIENT, &all_partner_clients[client_pid]);
 
 		//call make partner for client using the all_partner_clientp[client_pid]
 		all_partner_clients[client_pid].ops->make_partner(partner_ip, bandwidth,
-			ebdr_conn_client[client_pid].sockFd, client_pid);
+			atdr_conn_client[client_pid].sockFd, client_pid);
 
 	}
-	ebdr_log(EBDR_INFO, "[Daemon] After make partner pid = %d\n", client_pid);
+	atdr_log(ATDR_INFO, "[Daemon] After make partner pid = %d\n", client_pid);
 	replic_hdr_client_obj[client_pid].opcode = MAKE_PARTNER;
 	replic_hdr_client_obj[client_pid].bandwidth = bandwidth;
 	replic_hdr_client_obj[client_pid].partner_id = client_pid;
@@ -588,20 +588,20 @@ void make_partner_with_server(char *partner_ip, int bandwidth, char *disk, unsig
 	replic_hdr_client_obj[client_pid].grain_size = grain_size;
 	replic_hdr_client_obj[client_pid].chunk_size = chunk_size;
 
-	ebdr_log(EBDR_INFO, "[Daemon] client sock fd[%d]: %d\n", client_pid, ebdr_conn_client[client_pid].sockFd);
-	replic_client_obj[client_pid].rep_conn->conn_ops->do_ebdr_conn_send(&replic_hdr_client_obj[client_pid],
-		sizeof(replic_header), ebdr_conn_client[client_pid].sockFd, PROTO_TYPE);
+	atdr_log(ATDR_INFO, "[Daemon] client sock fd[%d]: %d\n", client_pid, atdr_conn_client[client_pid].sockFd);
+	replic_client_obj[client_pid].rep_conn->conn_ops->do_atdr_conn_send(&replic_hdr_client_obj[client_pid],
+		sizeof(replic_header), atdr_conn_client[client_pid].sockFd, PROTO_TYPE);
 }
 
 void prepare_for_replication(char *target_disk, int client_pid)
 {
-	ebdr_log(EBDR_INFO, "[prepare_for_replication] Initializing target disk \n");
+	atdr_log(ATDR_INFO, "[prepare_for_replication] Initializing target disk \n");
 
-	ebdr_disk_init(SECONDARY, target_disk, &ebdr_disk_target_obj[client_pid]);
-//	ebdr_disk_target_obj[client_pid].ops->disk_setup(&ebdr_disk_target_obj[client_pid]);
+	atdr_disk_init(SECONDARY, target_disk, &atdr_disk_target_obj[client_pid]);
+//	atdr_disk_target_obj[client_pid].ops->disk_setup(&atdr_disk_target_obj[client_pid]);
 
-	replic_client_obj[client_pid].rep_disk = &ebdr_disk_target_obj[client_pid];
-	ebdr_log(EBDR_INFO, "[prepare_for_replication] disk_fd: %d\n", replic_client_obj[client_pid].rep_disk->disk_fd);
+	replic_client_obj[client_pid].rep_disk = &atdr_disk_target_obj[client_pid];
+	atdr_log(ATDR_INFO, "[prepare_for_replication] disk_fd: %d\n", replic_client_obj[client_pid].rep_disk->disk_fd);
 }
 
 
@@ -614,19 +614,19 @@ void start_protocol_negotiation(unsigned int bitmap_size, unsigned int grain_siz
 	replic_hdr_client_obj[client_pid].chunk_size = chunk_size;
 	replic_hdr_client_obj[client_pid].partner_id = client_pid;
 
-	ebdr_log(EBDR_INFO, "[Daemon] sending SYN to server fd:%d \n", all_partner_clients[client_pid].socket_fd);
-	replic_client_obj[client_pid].rep_conn->conn_ops->do_ebdr_conn_send(&replic_hdr_client_obj[client_pid],
+	atdr_log(ATDR_INFO, "[Daemon] sending SYN to server fd:%d \n", all_partner_clients[client_pid].socket_fd);
+	replic_client_obj[client_pid].rep_conn->conn_ops->do_atdr_conn_send(&replic_hdr_client_obj[client_pid],
 		sizeof(replic_header), all_partner_clients[client_pid].socket_fd, PROTO_TYPE);
 
-	ebdr_log(EBDR_INFO, "[Daemon] recv syn-ack from server \n");
-	replic_client_obj[client_pid].rep_conn->conn_ops->do_ebdr_conn_recv(&replic_hdr_client_obj[client_pid],
+	atdr_log(ATDR_INFO, "[Daemon] recv syn-ack from server \n");
+	replic_client_obj[client_pid].rep_conn->conn_ops->do_atdr_conn_recv(&replic_hdr_client_obj[client_pid],
 		sizeof(replic_header), all_partner_clients[client_pid].socket_fd, PROTO_TYPE, client_pid);
 
 
 	replic_hdr_client_obj[client_pid].opcode = ACK;
 
-	ebdr_log(EBDR_INFO, "[Daemon] sending ack to server \n");
-	replic_client_obj[client_pid].rep_conn->conn_ops->do_ebdr_conn_send(&replic_hdr_client_obj[client_pid],
+	atdr_log(ATDR_INFO, "[Daemon] sending ack to server \n");
+	replic_client_obj[client_pid].rep_conn->conn_ops->do_atdr_conn_send(&replic_hdr_client_obj[client_pid],
 		sizeof(replic_header), all_partner_clients[client_pid].socket_fd, PROTO_TYPE);
 }
 
@@ -639,7 +639,7 @@ int make_relation_with_server(int partnerid, int role, char *target_disk, unsign
 	int client_rid;
 	client_rid = partnerid;
 
-	ebdr_relation_init(EBDR_RELATION_CLIENT, &all_relation_clients[partnerid], partnerid);
+	atdr_relation_init(ATDR_RELATION_CLIENT, &all_relation_clients[partnerid], partnerid);
 	if (role == 0)
 	{
 		relation_role = RELATION_PRIMARY;
@@ -657,11 +657,11 @@ int make_relation_with_server(int partnerid, int role, char *target_disk, unsign
 
 	else
 	{
-		ebdr_log(EBDR_INFO, "[Daemon] partner id[%d] is not valid.\n", partnerid);
+		atdr_log(ATDR_INFO, "[Daemon] partner id[%d] is not valid.\n", partnerid);
 		return -1;
 	}
 
-	ebdr_log(EBDR_INFO, "\n[Daemon] ******* Starting protocol negotiation... ******** \n");
+	atdr_log(ATDR_INFO, "\n[Daemon] ******* Starting protocol negotiation... ******** \n");
 	/* start protocol negotiation */
     start_protocol_negotiation(bitmap_size, grain_size, chunk_size, partnerid); 
 
@@ -673,40 +673,40 @@ int make_relation_with_server(int partnerid, int role, char *target_disk, unsign
 		all_relation_clients[relation_id].relation_id, RELATION_OBJ_IN_USE, all_relation_clients[relation_id].device,
 		all_relation_clients[relation_id].bitmap_size,
 		all_relation_clients[relation_id].grain_size,
-		all_relation_clients[relation_id].chunk_size, "ebdrdbc");
+		all_relation_clients[relation_id].chunk_size, "atdrdbc");
 
-	ebdr_log(EBDR_INFO, "\n[Daemon] @@@@@@@@ Starting preparation for replication... @@@@@@ \n");
+	atdr_log(ATDR_INFO, "\n[Daemon] @@@@@@@@ Starting preparation for replication... @@@@@@ \n");
 	prepare_for_replication(target_disk, partnerid); 
 	return 0;
 }
 
 void snapshot_disk_init(char *snap_disk, int pid)
 {
-	ebdr_log(EBDR_INFO, "[snapshot_disk_init]Initializing source disk:%s \n", snap_disk);
-	ebdr_log(EBDR_INFO, "[snapshot_disk_init] partner_id: [%d] \n", pid);
+	atdr_log(ATDR_INFO, "[snapshot_disk_init]Initializing source disk:%s \n", snap_disk);
+	atdr_log(ATDR_INFO, "[snapshot_disk_init] partner_id: [%d] \n", pid);
 
-	memcpy(ebdr_disk_src_obj[pid].snap_name, snap_disk, DISK_NAME);
-	ebdr_log(EBDR_INFO, "[snapshot_disk_init] Snap Name: %s\n", ebdr_disk_src_obj[pid].snap_name);
-	ebdr_log(EBDR_INFO, "[snapshot_disk_init] recovery_mode = %d\n", recovery_mode);
-	ebdr_disk_src_obj[pid].ops->disk_setup(&ebdr_disk_src_obj[pid]);
-	printf("[snapshot_disk_init] ebdr_disk_src_obj[%d].name = %s \n", pid, ebdr_disk_src_obj[pid].name);
+	memcpy(atdr_disk_src_obj[pid].snap_name, snap_disk, DISK_NAME);
+	atdr_log(ATDR_INFO, "[snapshot_disk_init] Snap Name: %s\n", atdr_disk_src_obj[pid].snap_name);
+	atdr_log(ATDR_INFO, "[snapshot_disk_init] recovery_mode = %d\n", recovery_mode);
+	atdr_disk_src_obj[pid].ops->disk_setup(&atdr_disk_src_obj[pid]);
+	printf("[snapshot_disk_init] atdr_disk_src_obj[%d].name = %s \n", pid, atdr_disk_src_obj[pid].name);
 	if (recovery_mode != 1)
 	{
 		printf("[snapshot_disk_init] updating snap name in disk table ...\n");
-		update_into_disk(pid, ebdr_disk_src_obj[pid].name, ebdr_disk_src_obj[pid].snap_name, "ebdrdbs");
+		update_into_disk(pid, atdr_disk_src_obj[pid].name, atdr_disk_src_obj[pid].snap_name, "atdrdbs");
 	}
 	/* update relation server table with snap disk name */
 	memcpy(all_relation_servers[pid].device, snap_disk, DISK_NAME);
 
-	//ebdr_user_bitmap_init(LOCAL, pid);
-	//ebdr_log(INFO, "[get_bitmap] partner_id : [%d] \n", pid);
+	//atdr_user_bitmap_init(LOCAL, pid);
+	//atdr_log(INFO, "[get_bitmap] partner_id : [%d] \n", pid);
 }
 
 
 void resync_handler(int partner_id)
 {
-	// struct ebdr_thread_t tmp_info;
-	// tmp_info = *(struct ebdr_thread_t *) partner_id;
+	// struct atdr_thread_t tmp_info;
+	// tmp_info = *(struct atdr_thread_t *) partner_id;
 	int pid = partner_id;
 	// int pid = tmp_info.pid;
 	unsigned long int bit_pos = thread_params[pid].bit_pos; // = tmp_info.bit_pos;
@@ -718,16 +718,16 @@ void resync_handler(int partner_id)
 	//Setting the thred specific pid
 	log_pid = pid;
 	//Set the thread params before starting resync
-	ebdr_log_setup(log_pid, str);
+	atdr_log_setup(log_pid, str);
 
-	ebdr_log(EBDR_INFO, "Starting resync for partner id : [%d]\n", pid);
+	atdr_log(ATDR_INFO, "Starting resync for partner id : [%d]\n", pid);
 
 	/* Check if partner_state is PARTNER_OBJ_PAUSE */
 #if 0 
-	if (all_partner_clients[pid].obj_state == PARTNER_OBJ_RESUME || ebdr_disk_target_obj[pid].obj_state == DISK_OBJ_PAUSE)
+	if (all_partner_clients[pid].obj_state == PARTNER_OBJ_RESUME || atdr_disk_target_obj[pid].obj_state == DISK_OBJ_PAUSE)
 	{
 		bit_pos = replic_client_obj[pid].last_resynced_bit;
-		ebdr_log(EBDR_INFO, "[resync_start] resync resumed at bit_pos = %lu\n", bit_pos);
+		atdr_log(ATDR_INFO, "[resync_start] resync resumed at bit_pos = %lu\n", bit_pos);
 	}
 #endif
 	//mode is zeroed out
@@ -746,7 +746,7 @@ int resync_init(int pid, unsigned long int bit_pos)
 
 	if (is_client_partner_id_valid(pid) == 0)
 	{
-		ebdr_log(EBDR_INFO, "[resync_init] partner id is not valid\n");
+		atdr_log(ATDR_INFO, "[resync_init] partner id is not valid\n");
 		return -1;
 	}
 
@@ -755,7 +755,7 @@ int resync_init(int pid, unsigned long int bit_pos)
 	{
 		thread_params[pid].pid = pid;
 		thread_params[pid].bit_pos = bit_pos;
-		ebdr_log(EBDR_INFO, "[resync_init] resync_tid[%d] \n", pid);
+		atdr_log(ATDR_INFO, "[resync_init] resync_tid[%d] \n", pid);
 		hndle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)resync_handler, pid, 0, &resync_tid[pid]);
 		if(hndle ==  NULL)
 		{
@@ -766,7 +766,7 @@ int resync_init(int pid, unsigned long int bit_pos)
 	}
 	else
 	{
-		ebdr_log(EBDR_ERROR, "There is no such partner id: %d\n", pid);
+		atdr_log(ATDR_ERROR, "There is no such partner id: %d\n", pid);
 	}
 	return 0;
 }
@@ -793,32 +793,32 @@ int parse_daemon_request(char *cmd)
 	switch (cmd[0])
 	{
 	case 'c':
-		ebdr_log(EBDR_INFO, "create device\n");
+		atdr_log(ATDR_INFO, "create device\n");
 		sscanf(cmd, "%s %s %lu %lu", tmp,
 			ioctl_obj.src_disk,
 			&ioctl_obj.u_grain_size,
 			&ioctl_obj.u_bitmap_size);
-		ebdr_log(EBDR_INFO, "backing device of ebdr :%s \n", ioctl_obj.src_disk);
+		atdr_log(ATDR_INFO, "backing device of atdr :%s \n", ioctl_obj.src_disk);
 
 		if (!is_disk_created(ioctl_obj.src_disk))
 		{
-			prepare_and_send_ioctl_cmd(EBDRCTL_DEV_CREATE);
+			prepare_and_send_ioctl_cmd(ATDRCTL_DEV_CREATE);
 			server_pid = ds_count;
-			//ebdr_log_setup(ds_count);
-			ebdr_disk_init(PRIMARY, ioctl_obj.src_disk, &ebdr_disk_src_obj[server_pid]);
+			//atdr_log_setup(ds_count);
+			atdr_disk_init(PRIMARY, ioctl_obj.src_disk, &atdr_disk_src_obj[server_pid]);
 			if (!once)
 			{
-				ebdr_connection_init(EBDR_CONN_SERVER, MAX_CONN + 1);
-				ebdr_conn_server[MAX_CONN + 1].conn_ops->do_ebdr_conn_setup(&ebdr_conn_server[MAX_CONN + 1], NULL, MAX_CONN + 1);
+				atdr_connection_init(ATDR_CONN_SERVER, MAX_CONN + 1);
+				atdr_conn_server[MAX_CONN + 1].conn_ops->do_atdr_conn_setup(&atdr_conn_server[MAX_CONN + 1], NULL, MAX_CONN + 1);
 				once = 1;
 			}
 		}
 		else
-			ebdr_log(ERROR, "device: %s has been already created \n", ioctl_obj.src_disk);
+			atdr_log(ERROR, "device: %s has been already created \n", ioctl_obj.src_disk);
 		break;
 
 	case 'l':
-		ebdr_log(EBDR_INFO, "resuming resync...\n");
+		atdr_log(ATDR_INFO, "resuming resync...\n");
 		sscanf(cmd, "%s %d", tmp, &pid);
 		/* Validate partner id */
 		ret = is_client_partner_id_valid(pid);
@@ -826,27 +826,27 @@ int parse_daemon_request(char *cmd)
 		{
 			if (replic_client_obj[pid].rep_state == RESYNC_COMPLETED)
 			{
-				ebdr_log(EBDR_INFO, "Resync already completed.\n");
+				atdr_log(ATDR_INFO, "Resync already completed.\n");
 			}
 			else
 			{
 				all_partner_clients[pid].obj_state = PARTNER_OBJ_RESUME;
 				replic_client_obj[pid].rep_state = RESYNC_RESUME;
-				update_into_partner(pid, all_partner_clients[pid].obj_state, "ebdrdbc");
-				update_resync_state(pid, replic_client_obj[pid].rep_state, "RESYNC_RESUME ", "ebdrdbc");
+				update_into_partner(pid, all_partner_clients[pid].obj_state, "atdrdbc");
+				update_resync_state(pid, replic_client_obj[pid].rep_state, "RESYNC_RESUME ", "atdrdbc");
 				resync_init(pid, replic_client_obj[pid].last_resynced_bit);
 				//resync_init(pid, 0);
 			}
 		}
 		else
 		{
-			ebdr_log(EBDR_INFO, "Client Partner id is invalid \n");
+			atdr_log(ATDR_INFO, "Client Partner id is invalid \n");
 		}
 		break;
 
 
 	case 'm':
-		ebdr_log(EBDR_INFO, "start ebdr client bitmap \n");
+		atdr_log(ATDR_INFO, "start atdr client bitmap \n");
 		sscanf(cmd, "%s %d", tmp, &pid);
 		/* Validate partner id */
 		ret = is_client_partner_id_valid(pid);
@@ -856,12 +856,12 @@ int parse_daemon_request(char *cmd)
 		}
 		else
 		{
-			ebdr_log(ERROR, "Client Partner id is invalid \n");
+			atdr_log(ERROR, "Client Partner id is invalid \n");
 		}
 		break;
 
 	case 'n':
-		ebdr_log(EBDR_INFO, "pausing resync...\n");
+		atdr_log(ATDR_INFO, "pausing resync...\n");
 		sscanf(cmd, "%s %d", tmp, &pid);
 		/* Validate partner id */
 		ret = is_client_partner_id_valid(pid);
@@ -869,24 +869,24 @@ int parse_daemon_request(char *cmd)
 		{
 			if (replic_client_obj[pid].last_resynced_bit == 0)
 			{
-				ebdr_log(EBDR_INFO, "Resync already finished.\n");
+				atdr_log(ATDR_INFO, "Resync already finished.\n");
 			}
 			else
 			{
 				all_partner_clients[pid].obj_state = PARTNER_OBJ_PAUSE;
 				replic_client_obj[pid].rep_state = RESYNC_PAUSE;
-				update_into_partner(pid, all_partner_clients[pid].obj_state, "ebdrdbc");
-				update_resync_state(pid, replic_client_obj[pid].rep_state, "RESYNC_PAUSE", "ebdrdbc");
+				update_into_partner(pid, all_partner_clients[pid].obj_state, "atdrdbc");
+				update_resync_state(pid, replic_client_obj[pid].rep_state, "RESYNC_PAUSE", "atdrdbc");
 			}
 		}
 		else
 		{
-			ebdr_log(EBDR_INFO, "Client Partner id is invalid \n");
+			atdr_log(ATDR_INFO, "Client Partner id is invalid \n");
 		}
 		break;
 
 	case 'p':
-		ebdr_log(EBDR_INFO, "make partner ...\n");
+		atdr_log(ATDR_INFO, "make partner ...\n");
 		sscanf(cmd, "%s %s %lu %s %lu %lu %lu", tmp, partner_ip, &bandwidth, target_disk, &bitmap_size,
 			&grain_size, &chunk_size);
 		ret = validate_ipaddr(partner_ip);
@@ -896,7 +896,7 @@ int parse_daemon_request(char *cmd)
 		}
 		else
 		{
-			ebdr_log(ERROR, "IP is wrong. Please check IP address again\n");
+			atdr_log(ERROR, "IP is wrong. Please check IP address again\n");
 		}
 		break;
 	case 'q':
@@ -904,7 +904,7 @@ int parse_daemon_request(char *cmd)
 		restart_resync(pid, 0, FULL_RESYNC);
 		break;
 	case 'r':
-		ebdr_log(EBDR_INFO, "calling resync_start...\n");
+		atdr_log(ATDR_INFO, "calling resync_start...\n");
 		sscanf(cmd, "%s %d", tmp, &pid);
 		/* Validate partner id */
 		ret = is_client_partner_id_valid(pid);
@@ -914,11 +914,11 @@ int parse_daemon_request(char *cmd)
 		}
 		else
 		{
-			ebdr_log(EBDR_INFO, "Client Partner id is invalid \n");
+			atdr_log(ATDR_INFO, "Client Partner id is invalid \n");
 		}
 		break;
 	case 's':
-		ebdr_log(EBDR_INFO, "start snap copy \n");
+		atdr_log(ATDR_INFO, "start snap copy \n");
 		memset(snap_disk, '\0', DISK_NAME);
 		sscanf(cmd, "%s %s %d", tmp, snap_disk, &pid);
 		/* Validate partner id */
@@ -929,13 +929,13 @@ int parse_daemon_request(char *cmd)
 		}
 		else
 		{
-			ebdr_log(EBDR_INFO, "Server Partner id is invalid \n");
+			atdr_log(ATDR_INFO, "Server Partner id is invalid \n");
 		}
 		break;
 
 
 	case 'y':
-		ebdr_log(EBDR_INFO, "[Daemon] Start make relation with server \n");
+		atdr_log(ATDR_INFO, "[Daemon] Start make relation with server \n");
 		sscanf(cmd, "%s %d %d %s %lu %lu %lu", tmp, &partnerid, &role, target_disk, &bitmap_size,
 			&grain_size, &chunk_size);
 
@@ -947,7 +947,7 @@ int parse_daemon_request(char *cmd)
 		}
 		else
 		{
-			ebdr_log(ERROR, "Please check input again \n");
+			atdr_log(ERROR, "Please check input again \n");
 		}
 		break;
 
@@ -1049,14 +1049,14 @@ int main(int argc, char* argv[])
 	strcpy(tmp_log_path, log_path);
 
 	printf("tmp_log_path =%s\n", tmp_log_path);
-	ebdr_logging();
-	ebdr_daemonize();
+	atdr_logging();
+	atdr_daemonize();
 
 #if SERVER
-	db_init("ebdrdbs");
+	db_init("atdrdbs");
 #endif
 #if CLIENT
-	db_init("ebdrdbc");
+	db_init("atdrdbc");
 #endif
 
 //	create_fifo();

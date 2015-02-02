@@ -4,10 +4,10 @@
 
 #define MAX_DISKS 	2048
 
-#define	EBDR_BYTES_TO_SECTOR(val)		(val/512)	
+#define	ATDR_BYTES_TO_SECTOR(val)		(val/512)	
 #define TRUE  1
 #define FALSE 0
-#define EBDR_TRACE_LOG_SIZE			4*4096
+#define ATDR_TRACE_LOG_SIZE			4*4096
 #define	PAGE_SHIFT				12
 #define	PAGE_SIZE				(1UL << PAGE_SHIFT)
 #define NUM_BITS_PER_PAGE			(1UL << (PAGE_SHIFT + 3))

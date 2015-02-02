@@ -10,7 +10,7 @@ void relation_client_obj_create(struct relation *relation_obj, int rid)
 {
 	if(rid > MAX_RELATIONS)
 	{
-		ebdr_log(EBDR_INFO, "Max relation client objects reached! \n");
+		atdr_log(ATDR_INFO, "Max relation client objects reached! \n");
 		stop_work("[relation_client_obj_create] max relation client objects reached ");
 	}
 }
@@ -40,10 +40,10 @@ int make_relation_client(int role, int pid, char *target_disk)
 	all_relation_clients[pid].grain_size = replic_hdr_client_obj[pid].grain_size ;
 
 	/*
-	   ebdr_log(EBDR_INFO, "[make_relation_client] relation role=%d partner_id=%d relation_id=%d disk=%s\n", 
+	   atdr_log(ATDR_INFO, "[make_relation_client] relation role=%d partner_id=%d relation_id=%d disk=%s\n", 
 	   all_relation_clients[rid].role, all_relation_clients[rid].partner_id,
 	   all_relation_clients[rid].relation_id, all_relation_clients[rid].device);
-	   insert_into_relation(role, id, rid, RELATION_OBJ_IN_USE,target_disk, all_relation_clients[rid].bitmap_size,all_relation_clients[rid].grain_size,"ebdrdbc");
+	   insert_into_relation(role, id, rid, RELATION_OBJ_IN_USE,target_disk, all_relation_clients[rid].bitmap_size,all_relation_clients[rid].grain_size,"atdrdbc");
 
 	 */
 	return pid;
@@ -52,23 +52,23 @@ int make_relation_client(int role, int pid, char *target_disk)
 void client_list_relations(void)
 {
 	int i;
-	ebdr_log(EBDR_INFO, "\n+-----------------------------------------------------------------+\n");
-	ebdr_log(EBDR_INFO, "|                         CLIENT RELATIONS                        |\n");
-	ebdr_log(EBDR_INFO, "+-----------------------------------------------------------------+\n");
-	ebdr_log(EBDR_INFO, "| Relation Role | Relation ID    |  Partner ID    | Device Name   |\n");
-	ebdr_log(EBDR_INFO, "+-----------------------------------------------------------------+\n");
+	atdr_log(ATDR_INFO, "\n+-----------------------------------------------------------------+\n");
+	atdr_log(ATDR_INFO, "|                         CLIENT RELATIONS                        |\n");
+	atdr_log(ATDR_INFO, "+-----------------------------------------------------------------+\n");
+	atdr_log(ATDR_INFO, "| Relation Role | Relation ID    |  Partner ID    | Device Name   |\n");
+	atdr_log(ATDR_INFO, "+-----------------------------------------------------------------+\n");
 
 	for(i = 0; i < pc_count; i++)
 	{
 		if(all_relation_clients[i].obj_state == RELATION_OBJ_IN_USE)
 		{
-			ebdr_log(EBDR_INFO, "| %s\t| %d\t\t | %d\t\t  | %s\t  |\n",
+			atdr_log(ATDR_INFO, "| %s\t| %d\t\t | %d\t\t  | %s\t  |\n",
 					(all_relation_clients[i].role == 0)?"PRIMARY":"SECONDARY",
 					all_relation_clients[i].relation_id, all_relation_clients[i].partner_id,  
 					all_relation_clients[i].device);
 		}
 	}
-	ebdr_log(EBDR_INFO, "+-----------------------------------------------------------------+\n");
+	atdr_log(ATDR_INFO, "+-----------------------------------------------------------------+\n");
 
 }
 
@@ -79,7 +79,7 @@ int mkrelation_from_db_on_client()
 
 void relation_client_obj_destroy(int rid)
 {
-	ebdr_log(EBDR_INFO, "[rel_client_destroy] Releasing relation_id = [%d]\n", rid);
+	atdr_log(ATDR_INFO, "[rel_client_destroy] Releasing relation_id = [%d]\n", rid);
 	//memset(&all_relation_clients[rid], '\0', sizeof(relation_t));
 	all_relation_clients[rid].obj_state = RELATION_OBJ_RELEASED;
 }

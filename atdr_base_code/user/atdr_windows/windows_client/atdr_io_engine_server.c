@@ -18,11 +18,11 @@ static void io_server_obj_create(int server_pid)
 	{
 		io_server_obj[server_pid].obj_state = IO_OBJ_IN_USE;
 		io_server_obj[server_pid].ops = &io_server_ops;
-		ebdr_log(EBDR_INFO, "[io_server_obj_create] server_pid = %d\n", server_pid);
+		atdr_log(ATDR_INFO, "[io_server_obj_create] server_pid = %d\n", server_pid);
 	}
 	else
 	{
-		ebdr_log(EBDR_INFO, "Max IO Objects reached !\n");
+		atdr_log(ATDR_INFO, "Max IO Objects reached !\n");
 		stop_work("[io_server_obj_create] man io objects server reached ");
 	}
 }
@@ -40,8 +40,8 @@ static int chunk_read_server(handle_fd_t hndle, char *buff, unsigned long int si
 
 	if (li.LowPart == INVALID_SET_FILE_POINTER)
 	{
-		ebdr_log(EBDR_FATAL, "[chunk_write_client]lseek error [%d]\n", GetLastError());
-		ebdr_log(EBDR_FATAL, "[chunk_write_client]lseek %llu\n", li.QuadPart);
+		atdr_log(ATDR_FATAL, "[chunk_write_client]lseek error [%d]\n", GetLastError());
+		atdr_log(ATDR_FATAL, "[chunk_write_client]lseek %llu\n", li.QuadPart);
 		return -1;
 	}
 	DWORD bytesRead;
@@ -49,34 +49,34 @@ static int chunk_read_server(handle_fd_t hndle, char *buff, unsigned long int si
     ret = ReadFile(hndle.hndle, buff, size, &bytesRead, NULL); 
 	if(ret <= 0 || bytesRead == 0)
 	{
-		ebdr_log(EBDR_INFO, "[chunk_read_server] read error %d\n", errno);
+		atdr_log(ATDR_INFO, "[chunk_read_server] read error %d\n", errno);
 		//stop_work("[chunk_read_server] read error ");
 		return ret;
 	}
 	
-	ebdr_log(EBDR_INFO, "[server_read] read %d bytes offset:%llu \n", bytesRead,li.LowPart);
+	atdr_log(ATDR_INFO, "[server_read] read %d bytes offset:%llu \n", bytesRead,li.LowPart);
 
 	return 0;
 }
 
 static int chunk_write_server(handle_fd_t fd, char *buff, unsigned long int size, unsigned long int start_lba)
 {
-	ebdr_log(EBDR_INFO, "[chunk_write_server] writing to socket fd:%d\n", fd);
+	atdr_log(ATDR_INFO, "[chunk_write_server] writing to socket fd:%d\n", fd);
 	if(send(fd.fd, buff, size, 0) <= 0) 
 	{
-		ebdr_log(EBDR_INFO, "server Send error\n");
+		atdr_log(ATDR_INFO, "server Send error\n");
 		return -1;
 	}
 
  	return 0;
 }
 
-static void io_server_obj_destroy(struct ebdr_io_engine *io_eng_obj)
+static void io_server_obj_destroy(struct atdr_io_engine *io_eng_obj)
 {
 	io_eng_obj->obj_state = IO_OBJ_RELEASED;
 }
 
-struct ebdr_io_engine_ops io_server_ops =
+struct atdr_io_engine_ops io_server_ops =
 {
 	.io_obj_create 		= io_server_obj_create,
 	.chunk_read      	= chunk_read_server,

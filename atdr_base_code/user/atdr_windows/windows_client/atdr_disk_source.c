@@ -17,7 +17,7 @@ extern IOCTL ioctl_obj;
 
 int insert_into_disk(int pid, char *name, char *snap_name, unsigned long int bitmap_size, int state, char *db_name);
 
-void disk_source_create(char *name,struct ebdr_disk  *ebdr_disk_obj)
+void disk_source_create(char *name,struct atdr_disk  *atdr_disk_obj)
 {
   int server_pid;
 
@@ -25,28 +25,28 @@ void disk_source_create(char *name,struct ebdr_disk  *ebdr_disk_obj)
 
 	/* Allocate memory for source disk & initialize */
 	/* If obj_state is already in use then dont create disk source object */
-	if(server_pid < MAX_DISKS && (ebdr_disk_src_obj[server_pid].obj_state != DISK_OBJ_IN_USE))
+	if(server_pid < MAX_DISKS && (atdr_disk_src_obj[server_pid].obj_state != DISK_OBJ_IN_USE))
 	{
-		ebdr_disk_obj->obj_state = DISK_OBJ_IN_USE;
-		memcpy(ebdr_disk_obj->name, name, DISK_NAME);
-		ebdr_log(EBDR_INFO, "[disk_src_create] disk name: %s\n", ebdr_disk_obj->name);
+		atdr_disk_obj->obj_state = DISK_OBJ_IN_USE;
+		memcpy(atdr_disk_obj->name, name, DISK_NAME);
+		atdr_log(ATDR_INFO, "[disk_src_create] disk name: %s\n", atdr_disk_obj->name);
 		if(recovery_mode[server_pid] !=1)
 		{
-			ebdr_disk_obj->bitmap_size = ioctl_obj.u_bitmap_size;
-			insert_into_disk(server_pid, ebdr_disk_obj->name, "-", ebdr_disk_obj->bitmap_size,ebdr_disk_obj->obj_state, "ebdrdbs"); 
+			atdr_disk_obj->bitmap_size = ioctl_obj.u_bitmap_size;
+			insert_into_disk(server_pid, atdr_disk_obj->name, "-", atdr_disk_obj->bitmap_size,atdr_disk_obj->obj_state, "atdrdbs"); 
 		}
-		ebdr_disk_obj->ops = &disk_source_ops;
-		// ebdr_disk_obj->ops->disk_mmap(server_pid);
+		atdr_disk_obj->ops = &disk_source_ops;
+		// atdr_disk_obj->ops->disk_mmap(server_pid);
 		ds_count++;
-		ebdr_log(EBDR_INFO, "[disk_src_create] server_pid = %d\n", server_pid);
+		atdr_log(ATDR_INFO, "[disk_src_create] server_pid = %d\n", server_pid);
 	}
 	else
 	{
-		ebdr_log(EBDR_ERROR, "[disk_src_create] Max disks reached !\n");
+		atdr_log(ATDR_ERROR, "[disk_src_create] Max disks reached !\n");
 	}
 }
 
-int disk_source_setup(struct ebdr_disk *disk_obj)
+int disk_source_setup(struct atdr_disk *disk_obj)
 {
 	HANDLE disk_fd;
 
@@ -57,11 +57,11 @@ int disk_source_setup(struct ebdr_disk *disk_obj)
 		WCHAR_BUFFER_SIZE / sizeof(WCHAR));
 	if (length <= 0)
 	{
-		ebdr_log(EBDR_ERROR, "Failed to convert to multibyte wide characters %d\n", GetLastError()); /* This print will change later */
+		atdr_log(ATDR_ERROR, "Failed to convert to multibyte wide characters %d\n", GetLastError()); /* This print will change later */
 		return -1;
 	}
 
-	ebdr_log(EBDR_INFO, "[src disk] setup snap disk name: %s\n", disk_obj->snap_name);
+	atdr_log(ATDR_INFO, "[src disk] setup snap disk name: %s\n", disk_obj->snap_name);
 	if ((disk_fd = CreateFile(disk_name, GENERIC_WRITE|GENERIC_READ, // open for writing
 		FILE_SHARE_READ, // share for reading
 
@@ -75,11 +75,11 @@ int disk_source_setup(struct ebdr_disk *disk_obj)
 
 		NULL)) == INVALID_HANDLE_VALUE)
 	{
-		ebdr_log(EBDR_ERROR, "INVALID_FILE SOURCE %d\n", GetLastError()); /* This print will change later */
+		atdr_log(ATDR_ERROR, "INVALID_FILE SOURCE %d\n", GetLastError()); /* This print will change later */
 		return -1;
 	}
 	disk_obj->disk_fd = disk_fd;
-	ebdr_log(EBDR_INFO, "[disk] src fd: %d\n", disk_obj->disk_fd);
+	atdr_log(ATDR_INFO, "[disk] src fd: %d\n", disk_obj->disk_fd);
 
 	return 0;
 }
@@ -134,33 +134,33 @@ int disk_source_mmap_windows(int server_pid)
 	int memory_fd[5];
 	char memctl_dev_name[5][64];
 
-	sprintf(memctl_dev_name[server_pid], "%s", ebdr_disk_src_obj[server_pid].name);
+	sprintf(memctl_dev_name[server_pid], "%s", atdr_disk_src_obj[server_pid].name);
 
 	printf("[disk_source_mmap] memctl_dev_name[%d]: %s \n", server_pid, memctl_dev_name[server_pid]);
 	if((memory_fd[server_pid] = open(memctl_dev_name[server_pid], O_RDWR)) < 0)
 	{
-		ebdr_log(FATAL, "[server_bitmap] memory_fd[%d] = %d \n", server_pid, errno);
+		atdr_log(FATAL, "[server_bitmap] memory_fd[%d] = %d \n", server_pid, errno);
 		stop_work("memctrl open failed ");
 	}
 
-	ebdr_log(EBDR_INFO, "[disk_source_mmap] memory_fd[%d] = %d \n", server_pid, memory_fd[server_pid]);
-	ebdr_log(EBDR_INFO, "[disk_source_mmap] calling mmap for dev[%d]:%s \n", server_pid, memctl_dev_name[server_pid]);
+	atdr_log(ATDR_INFO, "[disk_source_mmap] memory_fd[%d] = %d \n", server_pid, memory_fd[server_pid]);
+	atdr_log(ATDR_INFO, "[disk_source_mmap] calling mmap for dev[%d]:%s \n", server_pid, memctl_dev_name[server_pid]);
 
 	//Setting up the backup area for Even iteration
-	if (!(ebdr_disk_src_obj[server_pid].active_bitmap =  ioctl(memory_fd[server_pid], IOCTL_START_ACCEPTING_CHANGES_WINDOWS, &ioctl_obj )))
+	if (!(atdr_disk_src_obj[server_pid].active_bitmap =  ioctl(memory_fd[server_pid], IOCTL_START_ACCEPTING_CHANGES_WINDOWS, &ioctl_obj )))
 	{
-		ebdr_log(FATAL, "plkt_init: Could not mmap trace buffer\n");
+		atdr_log(FATAL, "plkt_init: Could not mmap trace buffer\n");
 		stop_work("mmap failed ");
 		goto mmap_trace_buffer_fail;
 	} else {
 		//Setting up the backup area for odd iteration
-		ebdr_disk_src_obj[server_pid].active_bitmap_backup = (unsigned long int *)((char *)(ebdr_disk_src_obj[server_pid].active_bitmap) + ebdr_disk_src_obj[server_pid].bitmap_size); 
-		ebdr_log(EBDR_INFO, " *** Snapshot of bitmap successfull. *** \n");
+		atdr_disk_src_obj[server_pid].active_bitmap_backup = (unsigned long int *)((char *)(atdr_disk_src_obj[server_pid].active_bitmap) + atdr_disk_src_obj[server_pid].bitmap_size); 
+		atdr_log(ATDR_INFO, " *** Snapshot of bitmap successfull. *** \n");
 	}
 
-	if(ebdr_disk_src_obj[server_pid].active_bitmap == NULL)
+	if(atdr_disk_src_obj[server_pid].active_bitmap == NULL)
 	{
-		ebdr_log(FATAL, "Mapping Failed\n");
+		atdr_log(FATAL, "Mapping Failed\n");
 		goto mmap_fail;
 	}
 	return 0;
@@ -174,23 +174,23 @@ mmap_trace_buffer_fail: return -2;
 
 int mkdisk_from_db_on_server(void)
 {
-//	return retrieve_from_disk(ebdr_disk_src_obj); santosh
+//	return retrieve_from_disk(atdr_disk_src_obj); santosh
 	return 0;
 }
 
-void disk_source_destroy(struct ebdr_disk *disk_obj)
+void disk_source_destroy(struct atdr_disk *disk_obj)
 {
 	// ds_count--;
 	disk_obj->obj_state = DISK_OBJ_RELEASED;
 }
 
-void disk_source_unsetup(struct ebdr_disk *disk_obj)
+void disk_source_unsetup(struct atdr_disk *disk_obj)
 {
-	ebdr_log(EBDR_INFO, "[disk_source_unsetup] closing source disk_fd: %d\n", disk_obj->disk_fd);
+	atdr_log(ATDR_INFO, "[disk_source_unsetup] closing source disk_fd: %d\n", disk_obj->disk_fd);
   CloseHandle(disk_obj->disk_fd); 
 }
 
-struct ebdr_disk_operations disk_source_ops =
+struct atdr_disk_operations disk_source_ops =
 {
 	.disk_create 	= disk_source_create,
 	.disk_setup 	= disk_source_setup,

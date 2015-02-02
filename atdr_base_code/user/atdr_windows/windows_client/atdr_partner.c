@@ -8,7 +8,7 @@
 int ps_count;
 int pc_count;
 
-void ebdr_partner_init(enum partner_mode_t partner_mode,struct partner *partner_obj)
+void atdr_partner_init(enum partner_mode_t partner_mode,struct partner *partner_obj)
 {
 	if(partner_mode == PARTNER_SERVER)
 	{   

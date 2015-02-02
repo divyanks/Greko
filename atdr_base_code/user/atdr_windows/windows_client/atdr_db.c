@@ -52,13 +52,13 @@ int mutex_lock()
 	case WAIT_OBJECT_0:
 		__try {
 			// TODO: Write to the database
-			ebdr_log(EBDR_INFO, "Thread %d  got ownership of mutex and it writing to database...\n",
+			atdr_log(ATDR_INFO, "Thread %d  got ownership of mutex and it writing to database...\n",
 				GetCurrentThreadId());
 			ret = TRUE;
 		}
 
 		__finally {
-			ebdr_log(EBDR_INFO, "Thread %d  does got ownership of mutex so returning false\n",
+			atdr_log(ATDR_INFO, "Thread %d  does got ownership of mutex so returning false\n",
 				GetCurrentThreadId());
 			/*
 			// Release ownership of the mutex object
@@ -74,7 +74,7 @@ int mutex_lock()
 		// The thread got ownership of an abandoned mutex
 		// The database is in an indeterminate state
 	case WAIT_ABANDONED:
-		ebdr_log(EBDR_INFO, "Thread %d  does got ownership of mutex and mutex is abonded state\n",
+		atdr_log(ATDR_INFO, "Thread %d  does got ownership of mutex and mutex is abonded state\n",
 			GetCurrentThreadId());
 		ret = FALSE;
 	}
@@ -86,7 +86,7 @@ int mutex_unlock()
 {
 	if (!ReleaseMutex(db_lock))
 	{
-		ebdr_log(EBDR_FATAL, "Error in unlocking mutex %d\n", GetLastError());
+		atdr_log(ATDR_FATAL, "Error in unlocking mutex %d\n", GetLastError());
 		return -1;
 	}
 	else
@@ -103,12 +103,12 @@ void finish_with_error(MYSQL *con)
 		mysql_close(con);
 	}
 	if (!ReleaseMutex(db_lock))
-		ebdr_log(EBDR_FATAL, "Error in unlocking mutex\n");
+		atdr_log(ATDR_FATAL, "Error in unlocking mutex\n");
 	
 }
 
 /* resync table 09-10-14 */
-int retrieve_from_resync(struct ebdr_replication *replic_obj, struct ebdr_disk *disk_obj)
+int retrieve_from_resync(struct atdr_replication *replic_obj, struct atdr_disk *disk_obj)
 {
 	int num_fields,i=0;
 	MYSQL_ROW row;
@@ -243,7 +243,7 @@ int update_into_disk(int pid, char *name, char *snap_name, char *db_name )
 }
 
 
-int retrieve_from_disk(struct ebdr_disk *ebdr_dsk)
+int retrieve_from_disk(struct atdr_disk *atdr_dsk)
 {
 	int num_fields,i=0;
 	MYSQL_ROW row;
@@ -262,12 +262,12 @@ int retrieve_from_disk(struct ebdr_disk *ebdr_dsk)
 	while(row = mysql_fetch_row(res))
 	{
 		//sscanf(row[0], "%d", pid );
-		sscanf(row[1], "%s", ebdr_dsk[i].name );
-		sscanf(row[2], "%s", ebdr_dsk[i].snap_name);
-		sscanf(row[3], "%lu", &ebdr_dsk[i].bitmap_size);
-		sscanf(row[4], "%u", &ebdr_dsk[i].obj_state);
-		printf("[retrieve_from_disk] disk_name = %s, snap_name = %s bitmap_size = %lu obj_state = %d\n", ebdr_dsk[i].name,
-			ebdr_dsk[i].snap_name, ebdr_dsk[i].bitmap_size, ebdr_dsk[i].obj_state);
+		sscanf(row[1], "%s", atdr_dsk[i].name );
+		sscanf(row[2], "%s", atdr_dsk[i].snap_name);
+		sscanf(row[3], "%lu", &atdr_dsk[i].bitmap_size);
+		sscanf(row[4], "%u", &atdr_dsk[i].obj_state);
+		printf("[retrieve_from_disk] disk_name = %s, snap_name = %s bitmap_size = %lu obj_state = %d\n", atdr_dsk[i].name,
+			atdr_dsk[i].snap_name, atdr_dsk[i].bitmap_size, atdr_dsk[i].obj_state);
 
 		i++;
 	}
@@ -472,7 +472,7 @@ int keyVar(char *key, char *var)
 		if(strcmp(Arr[i].key, key) == 0)
 		{
 			printf("Arr[%d].key=%s\n",i,Arr[i].key);
-			ebdr_log(EBDR_DEBUG, "Arr[%d].key=%s\n",i,Arr[i].key);
+			atdr_log(ATDR_DATUG, "Arr[%d].key=%s\n",i,Arr[i].key);
 			strcpy(Arr[i].var,  var);
 		}
 	}
@@ -489,22 +489,22 @@ int readConfig()
 
 	char filename[60];
 	
-	strcpy(filename, "c:\\ebdr\\ebdr_db.conf");
+	strcpy(filename, "c:\\atdr\\atdr_db.conf");
 	dbfp = fopen(filename, "r");
 	if(!dbfp)
 	{
-		ebdr_log(EBDR_FATAL, "dKb_conf: Opening ebdr_db conf file = %s  not successful errno=%d ", filename, errno);
-		ebdr_log(EBDR_FATAL, "db_conf: err string is =%s ", strerror(errno));
+		atdr_log(ATDR_FATAL, "dKb_conf: Opening atdr_db conf file = %s  not successful errno=%d ", filename, errno);
+		atdr_log(ATDR_FATAL, "db_conf: err string is =%s ", strerror(errno));
         exit(0);
 	}
 	else
 	{
-		ebdr_log(EBDR_DEBUG, "db_conf: file =%s open successful", filename);
+		atdr_log(ATDR_DATUG, "db_conf: file =%s open successful", filename);
 	}
 	
 	while(fgets(line, 80, dbfp))
 	{
-		ebdr_log(EBDR_DEBUG, "db_conf: line = %s", line);
+		atdr_log(ATDR_DATUG, "db_conf: line = %s", line);
     if(strlen(line) > 1)
     {
 		tknIndx = 0;
@@ -517,7 +517,7 @@ int readConfig()
     }
 	}
 	printf("\ndb_conf: db_user=%s db_password=%s db_host=%s\n",db_user, db_pswrd, db_host);
-	ebdr_log(EBDR_DEBUG, "db_conf: db_user=%s db_password=%s db_host=%s\n",db_user, db_pswrd, db_host);
+	atdr_log(ATDR_DATUG, "db_conf: db_user=%s db_password=%s db_host=%s\n",db_user, db_pswrd, db_host);
 	return 0;
 }
 
@@ -529,7 +529,7 @@ int db_init(char *db_name)
 	int pid_c = 0, pid_s = 0;
 	int i = 0,new_sockfd;
 
-	ebdr_log(EBDR_DEBUG, "\ndb_init: Initialixing mysql_init\n");
+	atdr_log(ATDR_DATUG, "\ndb_init: Initialixing mysql_init\n");
 
 	readConfig();
 
@@ -539,7 +539,7 @@ int db_init(char *db_name)
 		NULL);             // unnamed mutex
 	if (!db_lock)
 	{
-		ebdr_log(EBDR_FATAL, "db_init: Initializing mutex lock failed\n");
+		atdr_log(ATDR_FATAL, "db_init: Initializing mutex lock failed\n");
 		return -1;
 	}
 	
@@ -554,18 +554,18 @@ int db_init(char *db_name)
 		finish_with_error(con);
 	}
 
-	ebdr_log(EBDR_DEBUG, "db_init: after mysql_init\n");
+	atdr_log(ATDR_DATUG, "db_init: after mysql_init\n");
   my_bool reconnect = 1;
   mysql_options(con, MYSQL_OPT_RECONNECT, &reconnect);
 
 	if (mysql_real_connect(con, db_host,  db_user, db_pswrd, NULL, 0, NULL, 0) == NULL) 
 	{
 		fprintf(stderr, "%s\n", mysql_error(con));
-		ebdr_log(EBDR_ERROR, "db_init: error in connection\n");
+		atdr_log(ATDR_ERROR, "db_init: error in connection\n");
 		finish_with_error(con);
 	}  
 
-	ebdr_log(EBDR_DEBUG, "db_init: after connection\n");
+	atdr_log(ATDR_DATUG, "db_init: after connection\n");
 
 	sprintf(str, "%s %s",  "CREATE DATABASE IF NOT EXISTS", db_name); 
 	if (mysql_query(con, str)) 
@@ -635,9 +635,9 @@ int db_init(char *db_name)
 		{
 			pid_s = all_partner_servers[i].id;
 			printf("[db_init] ***** Recovering source disk object ***** \n");
-			ebdr_disk_init(PRIMARY, ebdr_disk_src_obj[pid_s].name, &ebdr_disk_src_obj[pid_s]);
-			snapshot_disk_init(ebdr_disk_src_obj[pid_s].snap_name, pid_s);
-			ebdr_user_bitmap_init(LOCAL, pid_s); /*14.11.14*/
+			atdr_disk_init(PRIMARY, atdr_disk_src_obj[pid_s].name, &atdr_disk_src_obj[pid_s]);
+			snapshot_disk_init(atdr_disk_src_obj[pid_s].snap_name, pid_s);
+			atdr_user_bitmap_init(LOCAL, pid_s); /*14.11.14*/
 			replication_init(REP_LOCAL, pid_s);
 			replic_server_obj[pid_s].ops->replic_obj_setup(&replic_server_obj[pid_s], pid_s);
 			replic_hdr_server_obj[pid_s].grain_size = all_relation_servers[pid_s].grain_size;
@@ -646,8 +646,8 @@ int db_init(char *db_name)
 		pid_s = MAX_CONN + 1;
 		/* start server connection */
 		printf("[db_init] ------ Restarting server connection from Database ------\n");
-		ebdr_connection_init(EBDR_CONN_SERVER,pid_s);
-		ebdr_conn_server[pid_s].conn_ops->do_ebdr_conn_setup(&ebdr_conn_server[pid_s], NULL, pid_s);
+		atdr_connection_init(ATDR_CONN_SERVER,pid_s);
+		atdr_conn_server[pid_s].conn_ops->do_atdr_conn_setup(&atdr_conn_server[pid_s], NULL, pid_s);
 	}
 #endif
 #if CLIENT
@@ -672,30 +672,30 @@ int db_init(char *db_name)
 			pid_c = all_partner_clients[i].id;
 			/* create new client socket and connect to server */
 			printf("[db_init] -------- Restarting client connection from Database -------\n");
-			ebdr_connection_init(EBDR_CONN_CLIENT, pid_c);
-			new_sockfd = ebdr_conn_client[pid_c].conn_ops->do_ebdr_conn_setup(&ebdr_conn_client[pid_c],
+			atdr_connection_init(ATDR_CONN_CLIENT, pid_c);
+			new_sockfd = atdr_conn_client[pid_c].conn_ops->do_atdr_conn_setup(&atdr_conn_client[pid_c],
 				all_partner_clients[pid_c].ip, pid_c);
 			printf("[db_init] new client sockfd = %d\n", new_sockfd);
 			all_partner_clients[pid_c].socket_fd = new_sockfd;
 
 			replication_init(REP_REMOTE, pid_c);
 			replic_client_obj[pid_c].ops->replic_obj_setup(&replic_client_obj[pid_c], pid_c);
-			prepare_for_replication(ebdr_disk_target_obj[pid_c].name, pid_c);
-			// ioctl(ebdr_disk_target_obj[pid_c].disk_fd, BLKFLSBUF, 0); SANTHOSH MAJOR CHANGE
+			prepare_for_replication(atdr_disk_target_obj[pid_c].name, pid_c);
+			// ioctl(atdr_disk_target_obj[pid_c].disk_fd, BLKFLSBUF, 0); SANTHOSH MAJOR CHANGE
 			replic_hdr_client_obj[pid_c].grain_size = all_relation_clients[pid_c].grain_size;
 			replic_hdr_client_obj[pid_c].chunk_size = all_relation_clients[pid_c].chunk_size;
 
 			if (replic_client_obj[pid_c].rep_state != RESYNC_COMPLETED)
 			{
-				ebdr_user_bitmap_init(REMOTE, pid_c);
+				atdr_user_bitmap_init(REMOTE, pid_c);
 				bitmap_client_obj[pid_c].ops->load_bitmap_from_disk(&bitmap_client_obj[pid_c], pid_c);
-				ebdr_disk_target_obj[pid_c].bitmap = &bitmap_client_obj[pid_c];
-				printf("[db_init] recoverd bitmap_area = 0x%lx \n", *(ebdr_disk_target_obj[pid_c].bitmap->bitmap_area));
+				atdr_disk_target_obj[pid_c].bitmap = &bitmap_client_obj[pid_c];
+				printf("[db_init] recoverd bitmap_area = 0x%lx \n", *(atdr_disk_target_obj[pid_c].bitmap->bitmap_area));
 				resync_init(pid_c, replic_client_obj[pid_c].last_resynced_bit);
 			} /* end if */
 			else
 			{
-				ebdr_log(EBDR_ERROR, "metadata received zero \n");
+				atdr_log(ATDR_ERROR, "metadata received zero \n");
 			}
 
 		}
@@ -703,7 +703,7 @@ int db_init(char *db_name)
 	}
 #endif
 
-	ebdr_log(EBDR_DEBUG, "after use ebdrd");
+	atdr_log(ATDR_DATUG, "after use atdrd");
 	mutex_unlock();
 	return 0;
 }

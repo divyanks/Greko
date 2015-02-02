@@ -19,7 +19,7 @@
 #include "..\Include\atdr_db.h"
 #include "..\Include\atdr_relation.h"
 
-extern struct ebdr_thread_t thread_params[MAX_DISKS+CNTRL_THREADS];
+extern struct atdr_thread_t thread_params[MAX_DISKS+CNTRL_THREADS];
 extern HANDLE resync_tid[MAX_DISKS]; 
 extern int recovery_mode[MAX_PID];
 int update_into_resync(int pid, char *target_disk, unsigned long int last_resynced_bit, int state, char *db_name);
@@ -30,11 +30,11 @@ int replic_verify_start(int pid)
 
 	replic_hdr_client_obj[pid].opcode = VERIFY_DATA;
 
-	replic_client_obj[pid].rep_conn->conn_ops->do_ebdr_conn_send(&replic_hdr_client_obj[pid],
+	replic_client_obj[pid].rep_conn->conn_ops->do_atdr_conn_send(&replic_hdr_client_obj[pid],
 			sizeof(replic_header), all_partner_clients[pid].socket_fd, PROTO_TYPE);
 
 
-	replic_client_obj[pid].rep_conn->conn_ops->do_ebdr_conn_recv(&replic_hdr_client_obj[pid],
+	replic_client_obj[pid].rep_conn->conn_ops->do_atdr_conn_recv(&replic_hdr_client_obj[pid],
 			sizeof(replic_header), all_partner_clients[pid].socket_fd, PROTO_TYPE, pid);
 
 	return ret;
@@ -42,7 +42,7 @@ int replic_verify_start(int pid)
 
 void replication_terminate(int pid)
 {
-	ebdr_disk_target_obj[pid].ops->disk_unsetup(&ebdr_disk_target_obj[pid]);
+	atdr_disk_target_obj[pid].ops->disk_unsetup(&atdr_disk_target_obj[pid]);
 
 	if (replic_client_obj[pid].rep_state != RESYNC_COMPLETED)
 	{
@@ -56,24 +56,24 @@ void replication_terminate(int pid)
 			replic_client_obj[pid].last_resynced_bit = 0;
 		}
 		/* clear buffer */
-		// ioctl(ebdr_disk_target_obj[pid].disk_fd, BLKFLSBUF, 0); SANTHOSH MAJOR CHANGE
+		// ioctl(atdr_disk_target_obj[pid].disk_fd, BLKFLSBUF, 0); SANTHOSH MAJOR CHANGE
 		/* close file descriptor */
-		ebdr_log(EBDR_INFO, "[resync_start(%d)] Closing target_disk_fd: [%d]\n", pid, ebdr_disk_target_obj[pid].disk_fd);
-		replic_client_obj[pid].rep_conn->conn_ops->do_ebdr_conn_send(&replic_hdr_client_obj[pid],
+		atdr_log(ATDR_INFO, "[resync_start(%d)] Closing target_disk_fd: [%d]\n", pid, atdr_disk_target_obj[pid].disk_fd);
+		replic_client_obj[pid].rep_conn->conn_ops->do_atdr_conn_send(&replic_hdr_client_obj[pid],
 			sizeof(replic_header), all_partner_clients[pid].socket_fd, PROTO_TYPE);
-		ebdr_log(EBDR_INFO, "[resync_start (%d)] Resync Completed !! \n", pid);
+		atdr_log(ATDR_INFO, "[resync_start (%d)] Resync Completed !! \n", pid);
 
 		/* Release all objects */
 		all_partner_clients[pid].obj_state = PARTNER_OBJ_RELEASED;
 		all_relation_clients[pid].obj_state = RELATION_OBJ_RELEASED;
-		ebdr_disk_target_obj[pid].obj_state = DISK_OBJ_RELEASED;
+		atdr_disk_target_obj[pid].obj_state = DISK_OBJ_RELEASED;
 		io_client_obj[pid].obj_state = IO_OBJ_RELEASED;
 
 		replic_client_obj[pid].rep_state = RESYNC_COMPLETED;
-		bitmap_client_obj[pid].ops->ebdr_bitmap_destroy(&bitmap_client_obj[pid], pid);
-		update_into_partner(pid, all_partner_clients[pid].obj_state, "ebdrdbc");
-		update_resync_state(pid, replic_client_obj[pid].rep_state, "RESYNC_COMPLETED", "ebdrdbc");
-		//delete_from_resync(pid, "ebdrdbc");
+		bitmap_client_obj[pid].ops->atdr_bitmap_destroy(&bitmap_client_obj[pid], pid);
+		update_into_partner(pid, all_partner_clients[pid].obj_state, "atdrdbc");
+		update_resync_state(pid, replic_client_obj[pid].rep_state, "RESYNC_COMPLETED", "atdrdbc");
+		//delete_from_resync(pid, "atdrdbc");
 	}
 }
 
@@ -92,8 +92,8 @@ void restart_resync(int pid , unsigned long int bit_pos, enum rep_mode_t mode)
 
 	replic_hdr_client_obj[pid].opcode = DATA;
 
-	ebdr_log(EBDR_INFO, "[resync_start] bit_pos = %lu\n", bit_pos);
-	ebdr_log(EBDR_INFO, "[resync_start] grain_size: %lu, chunk_size:%lu\n",
+	atdr_log(ATDR_INFO, "[resync_start] bit_pos = %lu\n", bit_pos);
+	atdr_log(ATDR_INFO, "[resync_start] grain_size: %lu, chunk_size:%lu\n",
 			replic_hdr_client_obj[pid].grain_size, replic_hdr_client_obj[pid].chunk_size);
 
 	/* If recovery mode is ON, then set bit_pos to last_resynced_bit and turn OFF recovery_mode
@@ -107,16 +107,16 @@ void restart_resync(int pid , unsigned long int bit_pos, enum rep_mode_t mode)
 	{
 		if(bit_pos == 0)
 		{
-			insert_into_resync(pid, ebdr_disk_target_obj[pid].name, bit_pos, RESYNC_IN_PROGRESS, "RESYNC_IN_PROGRESS", "ebdrdbc");
+			insert_into_resync(pid, atdr_disk_target_obj[pid].name, bit_pos, RESYNC_IN_PROGRESS, "RESYNC_IN_PROGRESS", "atdrdbc");
 			replic_client_obj[pid].rep_state = RESYNC_IN_PROGRESS;
 		}
 	}
-	ebdr_disk_target_obj[pid].ops->disk_setup(&ebdr_disk_target_obj[pid]);
+	atdr_disk_target_obj[pid].ops->disk_setup(&atdr_disk_target_obj[pid]);
 
-	while( (bit_pos < (ebdr_disk_target_obj[pid].bitmap->bitmap_size * 8)) &&
+	while( (bit_pos < (atdr_disk_target_obj[pid].bitmap->bitmap_size * 8)) &&
 			(all_partner_clients[pid].obj_state != PARTNER_OBJ_PAUSE))
 	{
-		if(is_bit_set(ebdr_disk_target_obj[pid].bitmap->bitmap_area, bit_pos) || (mode == FULL_RESYNC))
+		if(is_bit_set(atdr_disk_target_obj[pid].bitmap->bitmap_area, bit_pos) || (mode == FULL_RESYNC))
 		{
 			for (chunk_id = 0; chunk_id < total_iterations; chunk_id++)
 			{
@@ -125,7 +125,7 @@ void restart_resync(int pid , unsigned long int bit_pos, enum rep_mode_t mode)
 				replic_hdr_client_obj[pid].partner_id = pid;
 		
 				replic_hdr_client_obj[pid].opcode = DATA;
-				ebdr_log(EBDR_INFO, "[resync_start(%d)] #### bit_pos: [%lu] for CLIENT[%d]: [%d] ####\n", pid, 
+				atdr_log(ATDR_INFO, "[resync_start(%d)] #### bit_pos: [%lu] for CLIENT[%d]: [%d] ####\n", pid, 
 						replic_hdr_client_obj[pid].curr_pos,
 						pid, all_partner_clients[pid].socket_fd);
 				/* send replc hdr to server */
@@ -140,19 +140,19 @@ void restart_resync(int pid , unsigned long int bit_pos, enum rep_mode_t mode)
 
 				if (io_client_obj[pid].obj_state == IO_OBJ_RELEASED)
 				{
-					ebdr_log(EBDR_INFO, "[resync_start(%d)] Resync already completed...IO object is in release state\n", pid);
+					atdr_log(ATDR_INFO, "[resync_start(%d)] Resync already completed...IO object is in release state\n", pid);
 					return;
 				}
 
-				if( replic_client_obj[pid].rep_conn->conn_ops->do_ebdr_conn_send(&replic_hdr_client_obj[pid],
+				if( replic_client_obj[pid].rep_conn->conn_ops->do_atdr_conn_send(&replic_hdr_client_obj[pid],
 							sizeof(replic_header), all_partner_clients[pid].socket_fd, PROTO_TYPE) < 0)
 				{
-					ebdr_log(EBDR_INFO, "[resync_start(%d)] cancelling pthread and PAUSING conn client object due to send error...\n", pid);
+					atdr_log(ATDR_INFO, "[resync_start(%d)] cancelling pthread and PAUSING conn client object due to send error...\n", pid);
 					shutdown(all_partner_clients[pid].socket_fd, SD_SEND); 
 					closesocket(all_partner_clients[pid].socket_fd); 
 					all_partner_clients[pid].socket_fd = -1;
 					Sleep(60); 
-					ebdr_conn_client[pid].obj_state = CONN_OBJ_PAUSE;
+					atdr_conn_client[pid].obj_state = CONN_OBJ_PAUSE;
                     return; //Abondon the resync process
 				}
 
@@ -160,7 +160,7 @@ void restart_resync(int pid , unsigned long int bit_pos, enum rep_mode_t mode)
 				start_lba = (bit_pos * replic_hdr_client_obj[pid].grain_size) + 
 					(chunk_id * replic_hdr_client_obj[pid].chunk_size);
 
-				ebdr_log(EBDR_INFO, "[resync_start(%d)] grain_size: %lu chunk_size:%lu\n", pid,
+				atdr_log(ATDR_INFO, "[resync_start(%d)] grain_size: %lu chunk_size:%lu\n", pid,
 						replic_hdr_client_obj[pid].grain_size,
 						replic_hdr_client_obj[pid].chunk_size);	
 
@@ -169,26 +169,26 @@ void restart_resync(int pid , unsigned long int bit_pos, enum rep_mode_t mode)
 				if((io_client_obj[pid].ops->chunk_read(temp,
 							buff, size, start_lba)) < 0)
 				{
-					ebdr_log(EBDR_INFO, "[resync_start(%d)] cancelling pthread and PAUSING conn client object due to read error...\n", pid);
+					atdr_log(ATDR_INFO, "[resync_start(%d)] cancelling pthread and PAUSING conn client object due to read error...\n", pid);
 					shutdown(all_partner_clients[pid].socket_fd, SD_SEND); 
 					closesocket(all_partner_clients[pid].socket_fd); 
 					all_partner_clients[pid].socket_fd = -1;
 					Sleep(30); 
-					ebdr_conn_client[pid].obj_state = CONN_OBJ_PAUSE;
+					atdr_conn_client[pid].obj_state = CONN_OBJ_PAUSE;
 					return; //Abandon the resync process
 				}
 
-				temp.hndle = ebdr_disk_target_obj[pid].disk_fd;
+				temp.hndle = atdr_disk_target_obj[pid].disk_fd;
 
 				if( (io_client_obj[pid].ops->chunk_write(temp, buff, size, start_lba)) < 0)
 				{
-					ebdr_disk_target_obj[pid].obj_state = DISK_OBJ_PAUSE;
-					ebdr_log(EBDR_INFO, "[resyn_start(%d)] write  is paused \n", pid);
+					atdr_disk_target_obj[pid].obj_state = DISK_OBJ_PAUSE;
+					atdr_log(ATDR_INFO, "[resyn_start(%d)] write  is paused \n", pid);
 					ExitThread(-2); // -2 for when write failed.
 				}
 			}
-			//ebdr_log(INFO, "[resync_start(%d)] *** completed_bits[%d] = [%lu] *** \n", pid, pid, completed_bits[pid]++);
-			update_into_resync(pid, ebdr_disk_target_obj[pid].name, bit_pos, replic_client_obj[pid].rep_state, "ebdrdbc");
+			//atdr_log(INFO, "[resync_start(%d)] *** completed_bits[%d] = [%lu] *** \n", pid, pid, completed_bits[pid]++);
+			update_into_resync(pid, atdr_disk_target_obj[pid].name, bit_pos, replic_client_obj[pid].rep_state, "atdrdbc");
 		}
 		replic_client_obj[pid].last_resynced_bit = bit_pos;
 		bit_pos++;
@@ -196,8 +196,8 @@ void restart_resync(int pid , unsigned long int bit_pos, enum rep_mode_t mode)
 
 	if(all_partner_clients[pid].obj_state == PARTNER_OBJ_PAUSE)
 	{
-		ebdr_log(EBDR_INFO, "[resync_start(%d)]====== Resync paused at bit_pos:%lu =====\n", pid, replic_client_obj[pid].last_resynced_bit);
-		ebdr_log(EBDR_INFO, "[resync_start(%d)] grain_size: %lu chunk_size:%lu\n", pid,
+		atdr_log(ATDR_INFO, "[resync_start(%d)]====== Resync paused at bit_pos:%lu =====\n", pid, replic_client_obj[pid].last_resynced_bit);
+		atdr_log(ATDR_INFO, "[resync_start(%d)] grain_size: %lu chunk_size:%lu\n", pid,
 				replic_hdr_client_obj[pid].grain_size,
 				replic_hdr_client_obj[pid].chunk_size);	
 		ExitThread(-3); // -3 is user has asked for pause.

@@ -18,7 +18,7 @@
 	return retval;
 }
 
-void ebdr_set_bits(PEBDR_BITMAP bitmap, int first, int last)
+void atdr_set_bits(PATDR_BITMAP bitmap, int first, int last)
 {
 	int i = 0;
 	unsigned long *bmap = NULL;
@@ -42,7 +42,7 @@ void ebdr_set_bits(PEBDR_BITMAP bitmap, int first, int last)
 
 //This address is in sector hence convert addr = address >> 9;
 //Grain_size is in bytes
-UINT32 ebdr_find_pos( EBDR_BITMAP *bitmap, sector_t addr)
+UINT32 atdr_find_pos( ATDR_BITMAP *bitmap, sector_t addr)
 {
 	UINT32 cur =  0;
 	UINT32 	 grain_size = bitmap->grain_size;

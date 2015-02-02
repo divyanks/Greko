@@ -5,7 +5,7 @@
 #include "..\Include\atdr_replication_header.h"
 #include "..\Include\atdr_log.h"
 
-// extern FILE *ebdrlog_fp;
+// extern FILE *atdrlog_fp;
 
 void replic_hdr_client_create(enum rep_hdr_role_t rep_hdr_role, int client_pid)
 {
@@ -18,7 +18,7 @@ void replic_hdr_client_create(enum rep_hdr_role_t rep_hdr_role, int client_pid)
 	}
 	else
 	{
-		ebdr_log(EBDR_INFO, "Max replic header client objects reached !\n");
+		atdr_log(ATDR_INFO, "Max replic header client objects reached !\n");
 		stop_work("[replic_hdr_client_create] max replic header client objects reached ");
 	}
 }
@@ -31,7 +31,7 @@ struct replication_header *replic_hdr_client_nego(struct replication_header *rep
 	replic_hdr_client_obj[client_pid].grain_size = rep_hdr_obj->grain_size;
 	replic_hdr_client_obj[client_pid].chunk_size = rep_hdr_obj->chunk_size;
 
-	ebdr_log(EBDR_INFO, "[client_proto_nego] Agreed on these sizes bitmap:%lu grain:%lu chunksize=%lu client_pid: %d\n",
+	atdr_log(ATDR_INFO, "[client_proto_nego] Agreed on these sizes bitmap:%lu grain:%lu chunksize=%lu client_pid: %d\n",
 			replic_hdr_client_obj[client_pid].bitmap_size, replic_hdr_client_obj[client_pid].grain_size,
 			replic_hdr_client_obj[client_pid].chunk_size, client_pid );
 
@@ -42,7 +42,7 @@ struct replication_header *replic_hdr_client_nego(struct replication_header *rep
 
 void replic_hdr_client_destroy(struct replication_header *rep_hdr_obj)
 {
-	ebdr_log(EBDR_INFO, "[replic_hdr_client_destroy] setting obj_state to REP_HDR_OBJ_RELEASED\n");
+	atdr_log(ATDR_INFO, "[replic_hdr_client_destroy] setting obj_state to REP_HDR_OBJ_RELEASED\n");
 	rep_hdr_obj->obj_state = REP_HDR_OBJ_RELEASED;
 }
 

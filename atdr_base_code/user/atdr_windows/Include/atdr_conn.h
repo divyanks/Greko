@@ -1,5 +1,5 @@
-#ifndef EBDR_CONN_H
-#define EBDR_CONN_H
+#ifndef ATDR_CONN_H
+#define ATDR_CONN_H
 #include <Windows.h>
 
 #include "utils.h"
@@ -10,7 +10,7 @@ extern  char *log_path;
 #define SEND_RCV_LOG strcat(log_path, "send_recv_log.txt")
 #define REPLIC_THREAD_LOG  strcat(log_path, "replic_log.txt")
 
-enum ebdr_conn_obj_state_t
+enum atdr_conn_obj_state_t
 {
 	CONN_OBJ_IN_USE,
 	CONN_OBJ_PAUSE,
@@ -24,59 +24,59 @@ enum send_rcv_type_t
 	DATA_TYPE,
 };
 
-enum ebdr_conn_state_t
+enum atdr_conn_state_t
 {
-	EBDR_CONN_START,
-	EBDR_CONN_SETUP,
-	EBDR_CONN_WAIT_FOR_CLIENT,
-	EBDR_CONN_CONNECTING,
-	EBDR_CONN_CONNECTED,
-	EBDR_CONN_RELEASED,
-	EBDR_CONN_FAILED,
-	EBDR_CONN_DISCONNECTED,
+	ATDR_CONN_START,
+	ATDR_CONN_SETUP,
+	ATDR_CONN_WAIT_FOR_CLIENT,
+	ATDR_CONN_CONNECTING,
+	ATDR_CONN_CONNECTED,
+	ATDR_CONN_RELEASED,
+	ATDR_CONN_FAILED,
+	ATDR_CONN_DISCONNECTED,
 };
 
-enum ebdr_conn_mode_t
+enum atdr_conn_mode_t
 {
-	EBDR_CONN_SERVER,
-	EBDR_CONN_CLIENT
+	ATDR_CONN_SERVER,
+	ATDR_CONN_CLIENT
 };
 
-enum ebdr_conn_type_t
+enum atdr_conn_type_t
 {
-	EBDR_ASYNC,
-	EBDR_SYNC
+	ATDR_ASYNC,
+	ATDR_SYNC
 };
 
-struct ebdr_connection;
+struct atdr_connection;
 
-struct ebdr_conn_operations
+struct atdr_conn_operations
 {
-	void (* do_ebdr_conn_init)(int pid);
-	int (* do_ebdr_conn_setup)(struct ebdr_connection *conn_req, char *ip_addr, int pid);
-	int (* do_ebdr_conn_start) (struct ebdr_connection *conn_req, int pid);
-	int (* do_ebdr_conn_send) (void *buf, int size, SOCKET sockfd, enum send_rcv_type_t send_type);
-	int (* do_ebdr_conn_recv) (void *buf, int size, SOCKET sockfd, enum send_rcv_type_t send_type, int pid);
-	void (* do_ebdr_conn_stop) (struct ebdr_connection *conn_req, int pid);
-	void (*do_ebdr_conn_cleanup)(struct ebdr_connection *conn_req);
+	void (* do_atdr_conn_init)(int pid);
+	int (* do_atdr_conn_setup)(struct atdr_connection *conn_req, char *ip_addr, int pid);
+	int (* do_atdr_conn_start) (struct atdr_connection *conn_req, int pid);
+	int (* do_atdr_conn_send) (void *buf, int size, SOCKET sockfd, enum send_rcv_type_t send_type);
+	int (* do_atdr_conn_recv) (void *buf, int size, SOCKET sockfd, enum send_rcv_type_t send_type, int pid);
+	void (* do_atdr_conn_stop) (struct atdr_connection *conn_req, int pid);
+	void (*do_atdr_conn_cleanup)(struct atdr_connection *conn_req);
 };
 
-extern struct ebdr_conn_operations server_conn_ops;
-extern struct ebdr_conn_operations client_conn_ops;
+extern struct atdr_conn_operations server_conn_ops;
+extern struct atdr_conn_operations client_conn_ops;
 
 
-struct ebdr_connection
+struct atdr_connection
 {
 	char src_ip[64];
 	char dest_ip[64];
 	int src_port;
 	int conn_fd;
 	SOCKET sockFd;//listenFd
-	struct ebdr_conn_operations *conn_ops;
-	enum ebdr_conn_state_t ebdr_conn_state;
-	enum ebdr_conn_type_t ebdr_conn_type;
-	enum ebdr_conn_obj_state_t obj_state;
-	int ebdr_conn_mode;
+	struct atdr_conn_operations *conn_ops;
+	enum atdr_conn_state_t atdr_conn_state;
+	enum atdr_conn_type_t atdr_conn_type;
+	enum atdr_conn_obj_state_t obj_state;
+	int atdr_conn_mode;
 };
 
 struct sockfd_pid
@@ -85,11 +85,11 @@ struct sockfd_pid
   int pid;
 };
 
-typedef struct ebdr_connection ebdr_conn_t;
-ebdr_conn_t ebdr_connect;
-ebdr_conn_t ebdr_conn_server[MAX_CONN + 1];
-ebdr_conn_t ebdr_conn_client[MAX_CONN];
+typedef struct atdr_connection atdr_conn_t;
+atdr_conn_t atdr_connect;
+atdr_conn_t atdr_conn_server[MAX_CONN + 1];
+atdr_conn_t atdr_conn_client[MAX_CONN];
 
-void ebdr_connection_init(enum ebdr_conn_mode_t conn_mode, int pid);
-static void ebdr_conn_server_init(int server_pid);
+void atdr_connection_init(enum atdr_conn_mode_t conn_mode, int pid);
+static void atdr_conn_server_init(int server_pid);
 #endif 

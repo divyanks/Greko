@@ -1,5 +1,5 @@
-#ifndef EBDR_DAEMON_H
-#define EBDR_DAEMON_H
+#ifndef ATDR_DAEMON_H
+#define ATDR_DAEMON_H
 #include <stdio.h>
 #include <string.h>
 
@@ -16,8 +16,8 @@ extern  char *log_path;
 extern int log_pid;
 
 #define CNTRL_THREAD_LOG  strcat(log_path,   "cntrl_thread_log.txt")
-#define SERVER_LOG strcat(log_path,  "ebdrserverlog.txt")
-#define CLIENT_LOG strcat(log_path, "ebdrclient.txt")
+#define SERVER_LOG strcat(log_path,  "atdrserverlog.txt")
+#define CLIENT_LOG strcat(log_path, "atdrclient.txt")
 #define LEVEL_NAME 64
 
 extern void stop_work(char str[100]);
@@ -39,13 +39,13 @@ enum
 	USER,
 };
 
-struct ebdr_thread_t
+struct atdr_thread_t
 {
 	int pid;
 	unsigned long int bit_pos;
 	int logging_level;
 	int logging;
-	FILE *ebdrlog_fp;
+	FILE *atdrlog_fp;
 	char logStrng[LEVEL_NAME];
 };
 
@@ -56,7 +56,7 @@ int client_fifo_fd;
 char str[CMD_LEN];
 #define LOG_PATH_LEN 128
 extern char tmp_log_path[LOG_PATH_LEN];
-extern struct ebdr_thread_t thread_params[MAX_DISKS + CNTRL_THREADS];
-int ebdr_log_setup(int log_pid, char *file_name);
+extern struct atdr_thread_t thread_params[MAX_DISKS + CNTRL_THREADS];
+int atdr_log_setup(int log_pid, char *file_name);
 
 #endif

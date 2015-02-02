@@ -32,7 +32,7 @@ int server_send_hdr(char *buf, int size, SOCKET sockfd, replic_header *rep_hdr_r
 	ret = send(sockfd, (char *)rep_hdr_rcvd, sizeof(replic_header), 0);
 	if( ret < 0)
 	{
-		ebdr_log(ERROR, "ebdr conn server send hdr error returning -1\n");
+		atdr_log(ERROR, "atdr conn server send hdr error returning -1\n");
 		return -1;
 		//stop_work("[server_send_hdr] conn server send error ");
 	}
@@ -48,7 +48,7 @@ int server_send_data(char *buf, int size, SOCKET sockfd, replic_header *rep_hdr_
 	ret = send(sockfd, buf, size, 0);
 	if( ret < 0)
 	{
-		ebdr_log(EBDR_ERROR, "[data_type] ebdr conn server send data error =%d returning -1\n", GetLastError());
+		atdr_log(ATDR_ERROR, "[data_type] atdr conn server send data error =%d returning -1\n", GetLastError());
 		return -1;
 		//stop_work("[server_send_data] conn server send error ");
 	}
@@ -66,29 +66,29 @@ int get_bitmap(SOCKET sockfd, replic_header *rep_hdr_rcvd)
 	{
 		all_partner_servers[pid].obj_state = PARTNER_OBJ_IN_USE;
 		all_relation_servers[pid].obj_state = RELATION_OBJ_IN_USE;
-		ebdr_disk_src_obj[pid].obj_state = DISK_OBJ_IN_USE;
+		atdr_disk_src_obj[pid].obj_state = DISK_OBJ_IN_USE;
 
-		update_into_partner(pid, all_partner_servers[pid].obj_state, "ebdrdbs");
-		update_relation_state(pid, all_relation_servers[pid].obj_state, "ebdrdbs");
-		update_disk_state(pid, ebdr_disk_src_obj[pid].obj_state, "ebdrdbs");
+		update_into_partner(pid, all_partner_servers[pid].obj_state, "atdrdbs");
+		update_relation_state(pid, all_relation_servers[pid].obj_state, "atdrdbs");
+		update_disk_state(pid, atdr_disk_src_obj[pid].obj_state, "atdrdbs");
 	}
 
-	ebdr_user_bitmap_init(LOCAL, pid);
-	ebdr_log(EBDR_INFO, "[get_bitmap] partner_id : [%d] \n", pid);
-	ebdr_disk_src_obj[pid].bitmap = &bitmap_server_obj[pid];
+	atdr_user_bitmap_init(LOCAL, pid);
+	atdr_log(ATDR_INFO, "[get_bitmap] partner_id : [%d] \n", pid);
+	atdr_disk_src_obj[pid].bitmap = &bitmap_server_obj[pid];
 
 
-	bitmap_server_obj[pid].ops->ebdr_bitmap_setup(ebdr_disk_src_obj[pid].bitmap, pid);
-	ebdr_log(EBDR_INFO, "[get_bitmap] after ebdr_bitmap_setup... \n");
-	ebdr_log(EBDR_INFO, "[get_bitmap] server sockfd : [%d]\n", all_partner_servers[pid].socket_fd);
-	if (replic_server_obj[pid].rep_conn->conn_ops->do_ebdr_conn_send(ebdr_disk_src_obj[pid].bitmap->bitmap_area,
-		ebdr_disk_src_obj[pid].bitmap->bitmap_size, all_partner_servers[pid].socket_fd, DATA_TYPE) < 0)
+	bitmap_server_obj[pid].ops->atdr_bitmap_setup(atdr_disk_src_obj[pid].bitmap, pid);
+	atdr_log(ATDR_INFO, "[get_bitmap] after atdr_bitmap_setup... \n");
+	atdr_log(ATDR_INFO, "[get_bitmap] server sockfd : [%d]\n", all_partner_servers[pid].socket_fd);
+	if (replic_server_obj[pid].rep_conn->conn_ops->do_atdr_conn_send(atdr_disk_src_obj[pid].bitmap->bitmap_area,
+		atdr_disk_src_obj[pid].bitmap->bitmap_size, all_partner_servers[pid].socket_fd, DATA_TYPE) < 0)
 	{
-		ebdr_log(ERROR, "Metadata failed to send ...\n");
+		atdr_log(ERROR, "Metadata failed to send ...\n");
 		return -1;
 	}
 
-	ebdr_log(EBDR_INFO, "Recieved metadata req, sent metadata 0x%lx\n",*(ebdr_disk_src_obj[pid].bitmap->bitmap_area));
+	atdr_log(ATDR_INFO, "Recieved metadata req, sent metadata 0x%lx\n",*(atdr_disk_src_obj[pid].bitmap->bitmap_area));
 	io_engine_init(IO_SERVER, pid);
 	return 0;
 }
@@ -114,7 +114,7 @@ int get_data(SOCKET sockfd, replic_header *rep_hdr_rcvd)
 	/* check io object state */
 	if (io_server_obj[pid].obj_state == IO_OBJ_RELEASED)
 	{
-		//ebdr_log(INFO, "[get_data] Resync of pid = %d already completed IO object is in release state \n", pid);
+		//atdr_log(INFO, "[get_data] Resync of pid = %d already completed IO object is in release state \n", pid);
 		return 0;
 	}
 
@@ -122,17 +122,17 @@ int get_data(SOCKET sockfd, replic_header *rep_hdr_rcvd)
 
 
 	handle_fd_t temp;
-	temp.hndle = ebdr_disk_src_obj[pid].disk_fd;
+	temp.hndle = atdr_disk_src_obj[pid].disk_fd;
 
 	if((io_server_obj[pid].ops->chunk_read(temp, rbuff, size, start_lba)) < 0) 
 	{
-		ebdr_conn_server[pid].obj_state = CONN_OBJ_PAUSE;
-		ebdr_log(EBDR_INFO, "[get_data] read is paused for pid  = %d\n", pid);
+		atdr_conn_server[pid].obj_state = CONN_OBJ_PAUSE;
+		atdr_log(ATDR_INFO, "[get_data] read is paused for pid  = %d\n", pid);
 		sock_recovery[pid] = 1;
-		// shutdown(ebdr_conn_server[pid].conn_fd, SHUT_RDWR); SANTHOSH MAJOR CHANGE
-		closesocket(ebdr_conn_server[pid].conn_fd);
+		// shutdown(atdr_conn_server[pid].conn_fd, SHUT_RDWR); SANTHOSH MAJOR CHANGE
+		closesocket(atdr_conn_server[pid].conn_fd);
 		Sleep(60);
-		ebdr_conn_server[pid].conn_fd = -1;
+		atdr_conn_server[pid].conn_fd = -1;
 		partner_created[pid] = 0;
 	}
 
@@ -151,15 +151,15 @@ int get_data(SOCKET sockfd, replic_header *rep_hdr_rcvd)
 		partner_created[pid] = 0;
 		total_conn = 0;
 
-		ebdr_log(EBDR_INFO, "[get_data] conn object is paused for pid = %d \n", pid);
-		ebdr_conn_server[pid].obj_state = CONN_OBJ_PAUSE;
+		atdr_log(ATDR_INFO, "[get_data] conn object is paused for pid = %d \n", pid);
+		atdr_conn_server[pid].obj_state = CONN_OBJ_PAUSE;
 		sock_recovery[pid] = 1;
-		shutdown(ebdr_conn_server[pid].conn_fd, SD_SEND);
-		closesocket(ebdr_conn_server[pid].conn_fd);
+		shutdown(atdr_conn_server[pid].conn_fd, SD_SEND);
+		closesocket(atdr_conn_server[pid].conn_fd);
 		Sleep (60);
-		ebdr_conn_server[pid].conn_fd = -1;
+		atdr_conn_server[pid].conn_fd = -1;
 		partner_created[pid] = 0;
-		ebdr_log(EBDR_INFO, "[get_data] closing send_recv_thread ...\n");
+		atdr_log(ATDR_INFO, "[get_data] closing send_recv_thread ...\n");
 		//pthread_cancel(send_recv_tid);
 	}
 
@@ -175,28 +175,28 @@ int make_partner( SOCKET sockfd, replic_header *rep_hdr_rcvd)
 	replication_init(REP_LOCAL, pid);
 	replic_server_obj[pid].ops->replic_obj_setup(&replic_server_obj[pid], pid);
 
-	memcpy(&ebdr_conn_server[pid], &ebdr_conn_server[MAX_CONN + 1], sizeof(ebdr_conn_t));
+	memcpy(&atdr_conn_server[pid], &atdr_conn_server[MAX_CONN + 1], sizeof(atdr_conn_t));
 
-	ebdr_log(EBDR_INFO, "[conn_server] client_ip=%s bandwidth= %lu\n",  rep_hdr_rcvd->dest_ip, rep_hdr_rcvd->bandwidth);
+	atdr_log(ATDR_INFO, "[conn_server] client_ip=%s bandwidth= %lu\n",  rep_hdr_rcvd->dest_ip, rep_hdr_rcvd->bandwidth);
 	if (pid < MAX_PARTNERS){
-		ebdr_partner_init(PARTNER_SERVER, &all_partner_servers[pid]);
+		atdr_partner_init(PARTNER_SERVER, &all_partner_servers[pid]);
 		all_partner_servers[pid].ops->make_partner(rep_hdr_rcvd->dest_ip, rep_hdr_rcvd->bandwidth,
 				replic_server_obj[pid].rep_conn->conn_fd, pid);
 	}
 	else
 	{
-		ebdr_log(EBDR_INFO, "[conn_server] max limit for partner reached");
+		atdr_log(ATDR_INFO, "[conn_server] max limit for partner reached");
 	}
 
 	ret = is_server_partner_id_valid(pid);
 	if(ret)
 	{
-		//Fetch the fd back from MAX_CONN + 1 and assign it to ebdr_conn_server[pid]
+		//Fetch the fd back from MAX_CONN + 1 and assign it to atdr_conn_server[pid]
 		make_relation_with_client(pid, 0, rep_hdr_rcvd->disk, rep_hdr_rcvd->bitmap_size, rep_hdr_rcvd->grain_size, rep_hdr_rcvd->chunk_size);
 	}
 	else
 	{
-		ebdr_log(EBDR_INFO, "Please check input again \n");
+		atdr_log(ATDR_INFO, "Please check input again \n");
 	}
 	return 0;
 }
@@ -218,11 +218,11 @@ int remove_partner(SOCKET sockfd, replic_header *rep_hdr_rcvd)
 
 	if(all_relation_servers[pid].partner_id == pid && all_relation_servers[pid].obj_state == RELATION_OBJ_IN_USE)
 	{
-		ebdr_log(EBDR_INFO, "[remove_partner] release relation obj of pid = [%d]\n", pid);
+		atdr_log(ATDR_INFO, "[remove_partner] release relation obj of pid = [%d]\n", pid);
 		all_relation_servers[pid].ops->relation_obj_destroy(pid);
 	}
 
-	ebdr_log(EBDR_INFO, "[remove_partner] removing partner on server pid:%d\n", pid);
+	atdr_log(ATDR_INFO, "[remove_partner] removing partner on server pid:%d\n", pid);
 	all_partner_servers[pid].ops->partner_obj_destroy(pid);
 
 	return 0;
@@ -231,7 +231,7 @@ int remove_partner(SOCKET sockfd, replic_header *rep_hdr_rcvd)
 int remove_relation(SOCKET sockfd, replic_header *rep_hdr_rcvd)
 {
 	int rid = rep_hdr_rcvd->relation_id;
-	ebdr_log(EBDR_INFO, "[rm_relation] calling SERVER relation_obj_destroy relation_id:%d \n", rid);
+	atdr_log(ATDR_INFO, "[rm_relation] calling SERVER relation_obj_destroy relation_id:%d \n", rid);
 	all_relation_servers[rid].ops->relation_obj_destroy(rid);
     return 0;
 }
@@ -243,14 +243,14 @@ int syn_received(SOCKET sockfd, replic_header *rep_hdr_rcvd)
 
 	replic_hdr_server_obj[pid].ops = &replic_hdr_server_ops;
 	rep_hdr_rcvd = replic_hdr_server_obj[pid].ops->replic_hdr_nego(rep_hdr_rcvd, all_partner_servers[pid].socket_fd, pid);
-	ebdr_log(EBDR_INFO, "[sync_received] replic_hdr_server_obj[%d].partner_id = %d\n",
+	atdr_log(ATDR_INFO, "[sync_received] replic_hdr_server_obj[%d].partner_id = %d\n",
 			pid, replic_hdr_server_obj[pid].partner_id);
 	
 	rep_hdr_rcvd->opcode = SYN_ACK;
-	ebdr_log(EBDR_INFO, "[syn] sending syn+ack to client opcode:%d \n", rep_hdr_rcvd->opcode);
-	ebdr_log(EBDR_INFO, "After Negotiation... bitmap:%lu grain:%lu chunksize:%lu \n",
+	atdr_log(ATDR_INFO, "[syn] sending syn+ack to client opcode:%d \n", rep_hdr_rcvd->opcode);
+	atdr_log(ATDR_INFO, "After Negotiation... bitmap:%lu grain:%lu chunksize:%lu \n",
 			rep_hdr_rcvd->bitmap_size, rep_hdr_rcvd->grain_size, rep_hdr_rcvd->chunk_size);
-	replic_server_obj[pid].rep_conn->conn_ops->do_ebdr_conn_send(rep_hdr_rcvd, 
+	replic_server_obj[pid].rep_conn->conn_ops->do_atdr_conn_send(rep_hdr_rcvd, 
 			sizeof(replic_header), all_partner_servers[pid].socket_fd, PROTO_TYPE);
 
 
@@ -262,7 +262,7 @@ int syn_received(SOCKET sockfd, replic_header *rep_hdr_rcvd)
 			all_relation_servers[pid].relation_id, RELATION_OBJ_IN_USE, all_relation_servers[pid].device,
 		   	all_relation_servers[pid].bitmap_size,
 	        all_relation_servers[pid].grain_size,
-	        all_relation_servers[pid].chunk_size,"ebdrdbs");
+	        all_relation_servers[pid].chunk_size,"atdrdbs");
 #endif
 	return 0;
 }
@@ -270,7 +270,7 @@ int syn_received(SOCKET sockfd, replic_header *rep_hdr_rcvd)
 int ack(SOCKET sockfd, replic_header *rep_hdr_rcvd )
 {
 
-	ebdr_log(EBDR_INFO, "***** protocol negotiation done on both client & server *** \n\n");
+	atdr_log(ATDR_INFO, "***** protocol negotiation done on both client & server *** \n\n");
 	return 0;
 }
 
@@ -280,8 +280,8 @@ int data_req( SOCKET sockfd, replic_header *rep_hdr_rcvd )
 	rep_hdr_rcvd->opcode = DATA_PREP;
 	rep_hdr_rcvd->available_size = 4096; /* hardcoded...write logic to calculate available size*/
 	pid = rep_hdr_rcvd->partner_id;
-	ebdr_log(EBDR_INFO, "[server] sending DATA_PREP to client socket fd[%d]: [%d]\n", pid, all_partner_servers[pid].socket_fd);
-	replic_server_obj[pid].rep_conn->conn_ops->do_ebdr_conn_send(rep_hdr_rcvd, 
+	atdr_log(ATDR_INFO, "[server] sending DATA_PREP to client socket fd[%d]: [%d]\n", pid, all_partner_servers[pid].socket_fd);
+	replic_server_obj[pid].rep_conn->conn_ops->do_atdr_conn_send(rep_hdr_rcvd, 
 			sizeof(replic_header), all_partner_servers[pid].socket_fd, PROTO_TYPE);
 
 	return 0;
@@ -289,7 +289,7 @@ int data_req( SOCKET sockfd, replic_header *rep_hdr_rcvd )
 
 int data_start_recieved(SOCKET sockfd, replic_header *rep_hdr_rcvd )
 {
-	ebdr_log(EBDR_INFO, "[server] inside data_start_recieved ******** from client \n");
+	atdr_log(ATDR_INFO, "[server] inside data_start_recieved ******** from client \n");
 	stop_work("[data_start_recieved] exiting ");
 	return 0;
 }
@@ -300,20 +300,20 @@ int terminate(SOCKET sockfd, replic_header *rep_hdr_rcvd )
 	if (all_partner_servers[pid].obj_state != PARTNER_OBJ_RELEASED)
 	{
 		/* clear src disk buffer */
-		// ioctl(ebdr_disk_src_obj[pid].disk_fd, BLKFLSBUF, 0); SANTHOSH MAJOR CHANGE
-		ebdr_log(EBDR_INFO, "Replication terminate request received from client for partnerid:[%d]\n", pid);
-		ebdr_log(EBDR_INFO, "[server] closing src disk fd[%d]:[%d] \n", pid, ebdr_disk_src_obj[pid].disk_fd);
-		ebdr_disk_src_obj[pid].ops->disk_unsetup(&ebdr_disk_src_obj[pid]);
-		bitmap_server_obj[pid].ops->ebdr_bitmap_destroy(&bitmap_server_obj[pid], pid);
+		// ioctl(atdr_disk_src_obj[pid].disk_fd, BLKFLSBUF, 0); SANTHOSH MAJOR CHANGE
+		atdr_log(ATDR_INFO, "Replication terminate request received from client for partnerid:[%d]\n", pid);
+		atdr_log(ATDR_INFO, "[server] closing src disk fd[%d]:[%d] \n", pid, atdr_disk_src_obj[pid].disk_fd);
+		atdr_disk_src_obj[pid].ops->disk_unsetup(&atdr_disk_src_obj[pid]);
+		bitmap_server_obj[pid].ops->atdr_bitmap_destroy(&bitmap_server_obj[pid], pid);
 		recovery_mode[pid] = 0;
 		/* Release all objects */
 		all_partner_servers[pid].obj_state = PARTNER_OBJ_RELEASED;
 		all_relation_servers[pid].obj_state = RELATION_OBJ_RELEASED;
-		ebdr_disk_src_obj[pid].obj_state = DISK_OBJ_RELEASED;
+		atdr_disk_src_obj[pid].obj_state = DISK_OBJ_RELEASED;
 		io_server_obj[pid].obj_state = IO_OBJ_RELEASED;
-		update_into_partner(pid, all_partner_servers[pid].obj_state, "ebdrdbs");
+		update_into_partner(pid, all_partner_servers[pid].obj_state, "atdrdbs");
 	}
-	//ebdr_log(INFO, "Closing send recv thread ...\n");
+	//atdr_log(INFO, "Closing send recv thread ...\n");
 	//pthread_cancel(send_recv_tid);
 
 	return 0;
@@ -326,7 +326,7 @@ verify_data(SOCKET sockfd, replic_header *rep_hdr_rcvd)
 
 //  memset(rep_hdr_rcvd->md5, '\0', 64);
 
-  if( (calculate_md5(ebdr_disk_src_obj[pid].snap_name, rep_hdr_rcvd, NULL) < 0) || rep_hdr_rcvd->md5[0] == '\0' )
+  if( (calculate_md5(atdr_disk_src_obj[pid].snap_name, rep_hdr_rcvd, NULL) < 0) || rep_hdr_rcvd->md5[0] == '\0' )
   {
     //set opcode to IGN verify protocol
     rep_hdr_rcvd->opcode = VERIFY_DATA_IGN;
@@ -335,7 +335,7 @@ verify_data(SOCKET sockfd, replic_header *rep_hdr_rcvd)
     rep_hdr_rcvd->opcode = VERIFY_DATA_RSP;
   }
 
-	replic_server_obj[pid].rep_conn->conn_ops->do_ebdr_conn_send(rep_hdr_rcvd, 
+	replic_server_obj[pid].rep_conn->conn_ops->do_atdr_conn_send(rep_hdr_rcvd, 
 			sizeof(replic_header), all_partner_servers[pid].socket_fd, PROTO_TYPE);
 	return 0;
 }
@@ -378,17 +378,17 @@ int calculate_md5(char *disk_name, replic_header *rep_hdr_rcvd, char *md5)
 
   if (fd < 0 || fd_error < 0) {
 
-    ebdr_log(EBDR_FATAL, "This pid %d unable to open the %s file \n", pid, filename); 
+    atdr_log(ATDR_FATAL, "This pid %d unable to open the %s file \n", pid, filename); 
     goto out;
 
   } else {
     memset(str, '\0', MAX_CMD_LEN);
     sprintf(str, "%s", CMD_TO_VERIFY);
 
-    ret = ebdr_exec_redirect(str, disk_name, -1, fd, fd_error );
+    ret = atdr_exec_redirect(str, disk_name, -1, fd, fd_error );
     if(ret < 0)
     {
-      ebdr_log(EBDR_FATAL, "This pid %d unable to open the %s file \n", pid, filename); 
+      atdr_log(ATDR_FATAL, "This pid %d unable to open the %s file \n", pid, filename); 
       goto out;
 
     }
@@ -404,7 +404,7 @@ int calculate_md5(char *disk_name, replic_header *rep_hdr_rcvd, char *md5)
   }
 
   if(get_last_md5_values(fd, rep_hdr_rcvd, md5) < 0) {
-    ebdr_log(EBDR_FATAL, "This pid %d unable to read the %s file %d \n", pid, filename, errno); 
+    atdr_log(ATDR_FATAL, "This pid %d unable to read the %s file %d \n", pid, filename, errno); 
     ret = -1;
     goto out;
   }

@@ -13,10 +13,10 @@
 #include "..\Include\atdr_ioctl_cmds.h"
 #include "..\Include\atdr_conn.h"
 
-#define EBDR_TRACE_LOG_SIZE                4*4096
+#define ATDR_TRACE_LOG_SIZE                4*4096
 extern ioctl_fd;
 
-// extern FILE * ebdrlog_fp;
+// extern FILE * atdrlog_fp;
 extern IOCTL ioctl_obj;
 extern int recovery_mode;
 
@@ -29,7 +29,7 @@ int get_total_bits_set(unsigned long int *dirtied_bitmap)
 
 	while (bit_pos < MAX_BITS_LEN)
 	{
-		if (ebdr_check_bit_set(dirtied_bitmap, bit_pos))
+		if (atdr_check_bit_set(dirtied_bitmap, bit_pos))
 		{
 			bits_set++;
 		}
@@ -38,7 +38,7 @@ int get_total_bits_set(unsigned long int *dirtied_bitmap)
 	return bits_set;
 }
 
-int ebdr_copy_mmaped_bitmap(ulong_t *dest, ulong_t *src, size_t nbytes)
+int atdr_copy_mmaped_bitmap(ulong_t *dest, ulong_t *src, size_t nbytes)
 {
 	size_t i, nwords = nbytes / sizeof (ulong_t);
 	for (i = 1; i <= nwords; i++)
@@ -46,7 +46,7 @@ int ebdr_copy_mmaped_bitmap(ulong_t *dest, ulong_t *src, size_t nbytes)
 	return (0);
 }
 
-void ebdr_clear_active_bitmap(ulong_t *dest, size_t nbytes)
+void atdr_clear_active_bitmap(ulong_t *dest, size_t nbytes)
 {
 	ulong_t val = 0x0;
 	size_t i, nwords = nbytes / sizeof (ulong_t);
@@ -60,85 +60,85 @@ static void bitmap_server_create(int server_pid)
 	bitmap_server_obj[server_pid].bitmap_area = malloc(BITMAP_SIZE);
 	if (!bitmap_server_obj[server_pid].bitmap_area)
 	{
-		ebdr_log(EBDR_FATAL, "error in allocating memory");
+		atdr_log(ATDR_FATAL, "error in allocating memory");
 		stop_work("bitmap server malloc failed\n");
 	}
 	memset(bitmap_server_obj[server_pid].bitmap_area, '\0', (BITMAP_SIZE));
 	bitmap_server_obj[server_pid].bitmap_size = BITMAP_SIZE;
 
-	bitmap_server_obj[server_pid].bitmap_state = EBDR_UBITMAP_INIT;
+	bitmap_server_obj[server_pid].bitmap_state = ATDR_UBITMAP_INIT;
 	bitmap_server_obj[server_pid].mmap_state = MMAP_UNUSED;
 	bitmap_server_obj[server_pid].bmap_user = KERNEL;
-	ebdr_log(EBDR_INFO, "\n[server_bitmap_init] bitmap intialized and assing server ops\n");
+	atdr_log(ATDR_INFO, "\n[server_bitmap_init] bitmap intialized and assing server ops\n");
 	bitmap_server_obj[server_pid].ops = &bitmap_server_operations;
 }
 
-int server_bitmap_load_from_memory(struct ebdr_user_bitmap *ubitmap_obj, int server_pid)
+int server_bitmap_load_from_memory(struct atdr_user_bitmap *ubitmap_obj, int server_pid)
 {
 	int ret;
 
 	ioctl_obj.index = server_pid + 1;
-	ret = prepare_and_send_ioctl_cmd(EBDRCTL_GET_USER);
+	ret = prepare_and_send_ioctl_cmd(ATDRCTL_GET_USER);
 	if (ret < 0)
 	{
 		stop_work("get user ioctl failed");
 	}
 
-	ubitmap_obj->bitmap_size = ebdr_disk_src_obj[server_pid].bitmap_size;
+	ubitmap_obj->bitmap_size = atdr_disk_src_obj[server_pid].bitmap_size;
 
 	if (ioctl_obj.bmap_user == KERNEL)
 	{
 		ioctl_obj.bmap_user = USER;
 		ubitmap_obj->bmap_user = USER;
-		ebdr_copy_mmaped_bitmap(ubitmap_obj->bitmap_area, ebdr_disk_src_obj[server_pid].active_bitmap, ubitmap_obj->bitmap_size);
-		ebdr_log(EBDR_INFO, "[load_from_memory] KERNEL->USER bitmap_area:0x%lx *****\n", *(ubitmap_obj->bitmap_area));
+		atdr_copy_mmaped_bitmap(ubitmap_obj->bitmap_area, atdr_disk_src_obj[server_pid].active_bitmap, ubitmap_obj->bitmap_size);
+		atdr_log(ATDR_INFO, "[load_from_memory] KERNEL->USER bitmap_area:0x%lx *****\n", *(ubitmap_obj->bitmap_area));
 	}
 	else {
 		ioctl_obj.bmap_user = KERNEL;
 		ubitmap_obj->bmap_user = KERNEL;
-		ebdr_copy_mmaped_bitmap(ubitmap_obj->bitmap_area,
-			ebdr_disk_src_obj[server_pid].active_bitmap_backup, ubitmap_obj->bitmap_size);
-		ebdr_log(EBDR_INFO, "[load_from_memory] USER->KERNEL bitmap_area:0x%lx *****\n", *(ubitmap_obj->bitmap_area));
+		atdr_copy_mmaped_bitmap(ubitmap_obj->bitmap_area,
+			atdr_disk_src_obj[server_pid].active_bitmap_backup, ubitmap_obj->bitmap_size);
+		atdr_log(ATDR_INFO, "[load_from_memory] USER->KERNEL bitmap_area:0x%lx *****\n", *(ubitmap_obj->bitmap_area));
 	}
 
-	ebdr_log(EBDR_INFO, "[load_from_memory] ioctl_obj.bmap_user: %d ioctl_obj.index = %d\n", ioctl_obj.bmap_user, ioctl_obj.index);
-	ebdr_log(EBDR_INFO, "[load_from_memory] ubitmap:0x%lx \n", *(ubitmap_obj->bitmap_area));
-	ebdr_log(EBDR_INFO, "[load_from_memory] ebdr_disk active_bitmap[%d]:0x%lx \n", server_pid,
-		*(ebdr_disk_src_obj[server_pid].active_bitmap));
+	atdr_log(ATDR_INFO, "[load_from_memory] ioctl_obj.bmap_user: %d ioctl_obj.index = %d\n", ioctl_obj.bmap_user, ioctl_obj.index);
+	atdr_log(ATDR_INFO, "[load_from_memory] ubitmap:0x%lx \n", *(ubitmap_obj->bitmap_area));
+	atdr_log(ATDR_INFO, "[load_from_memory] atdr_disk active_bitmap[%d]:0x%lx \n", server_pid,
+		*(atdr_disk_src_obj[server_pid].active_bitmap));
 	
 
 	/* Don't FLIP bitmap area in recovery mode */
-	if ((recovery_mode == 0) && (ebdr_conn_server[server_pid].obj_state != CONN_OBJ_RESUME))
+	if ((recovery_mode == 0) && (atdr_conn_server[server_pid].obj_state != CONN_OBJ_RESUME))
 	{
-		ebdr_log(EBDR_INFO, "sending EBDR_FLIP_BITMAP_AREA to kernel... \n");
-		ret = prepare_and_send_ioctl_cmd(EBDR_FLIP_BITMAP_AREA);
+		atdr_log(ATDR_INFO, "sending ATDR_FLIP_BITMAP_AREA to kernel... \n");
+		ret = prepare_and_send_ioctl_cmd(ATDR_FLIP_BITMAP_AREA);
 		if (ret < 0)
 		{
 			stop_work("flip bitmap area failed ");
 		}
-		ebdr_log(EBDR_INFO, "return value of flip_bitmap_area ioctl = %d\n", ret);
+		atdr_log(ATDR_INFO, "return value of flip_bitmap_area ioctl = %d\n", ret);
 	}
 	else
 	{
-		ebdr_conn_server[server_pid].obj_state = CONN_OBJ_IN_USE;
-		if (*(ebdr_disk_src_obj[server_pid].active_bitmap))
+		atdr_conn_server[server_pid].obj_state = CONN_OBJ_IN_USE;
+		if (*(atdr_disk_src_obj[server_pid].active_bitmap))
 		{
-			ebdr_copy_mmaped_bitmap(ubitmap_obj->bitmap_area, ebdr_disk_src_obj[server_pid].active_bitmap, ubitmap_obj->bitmap_size);
+			atdr_copy_mmaped_bitmap(ubitmap_obj->bitmap_area, atdr_disk_src_obj[server_pid].active_bitmap, ubitmap_obj->bitmap_size);
 		}
 		else
 		{
-			ebdr_copy_mmaped_bitmap(ubitmap_obj->bitmap_area, ebdr_disk_src_obj[server_pid].active_bitmap_backup, ubitmap_obj->bitmap_size);
+			atdr_copy_mmaped_bitmap(ubitmap_obj->bitmap_area, atdr_disk_src_obj[server_pid].active_bitmap_backup, ubitmap_obj->bitmap_size);
 		}
 	}
-	ebdr_log(EBDR_INFO, "[bitmap_server_setup] After ioctl bitmap:0x%lx \n", *(ubitmap_obj->bitmap_area));
+	atdr_log(ATDR_INFO, "[bitmap_server_setup] After ioctl bitmap:0x%lx \n", *(ubitmap_obj->bitmap_area));
 #if 0
 	/* VJ changes */
-	gsize = prepare_and_send_ioctl_cmd(EBDRCTL_GET_GRAIN_SIZE); /* VJ changes */
+	gsize = prepare_and_send_ioctl_cmd(ATDRCTL_GET_GRAIN_SIZE); /* VJ changes */
 	if (gsize < 0)
 	{
 		stop_work("get grain size ioctl failed ");
 	}
-	ebdr_log(INFO, "[bitmap_server_setup] After ioctl bitmap:0x%lx grain_size %lu\n", *(ubitmap_obj->bitmap_area), gsize);
+	atdr_log(INFO, "[bitmap_server_setup] After ioctl bitmap:0x%lx grain_size %lu\n", *(ubitmap_obj->bitmap_area), gsize);
 	ubitmap_obj->grain_size = gsize;
 #endif
 	/* Clear active bitmap */
@@ -146,29 +146,29 @@ int server_bitmap_load_from_memory(struct ebdr_user_bitmap *ubitmap_obj, int ser
 }
 
 
-static int bitmap_server_setup(struct ebdr_user_bitmap *ubitmap_obj, int server_pid)
+static int bitmap_server_setup(struct atdr_user_bitmap *ubitmap_obj, int server_pid)
 {
 	int ret;
 	// unsigned long gsize;
 
-	ebdr_log(EBDR_INFO, "[bitmap_server_setup] calling load_ebdr_bitmap_from_disk server_pid:[%d] \n", server_pid);
+	atdr_log(ATDR_INFO, "[bitmap_server_setup] calling load_atdr_bitmap_from_disk server_pid:[%d] \n", server_pid);
 	ret = ubitmap_obj->ops->load_bitmap_from_memory(ubitmap_obj, server_pid);
 	if (ret < 0)
 	{
-		ebdr_log(EBDR_FATAL, "Loading server bitmap from disk failed\n");
+		atdr_log(ATDR_FATAL, "Loading server bitmap from disk failed\n");
 		stop_work("load bitmap from memory failed ");
 	}
 
 	/* get total bits set in the bitmap_area */
 	ubitmap_obj->uptill.total_bits_set = ubitmap_obj->ops->get_total_bits_set(ubitmap_obj->bitmap_area);
-	ebdr_log(EBDR_INFO, "[bitmap_server_setup] totalbitsset = %d\n", ubitmap_obj->uptill.total_bits_set);
-	ebdr_log(EBDR_INFO, "[bitmap_server_setup] assigning bitmap state as READy \n");
-	ubitmap_obj->bitmap_state = EBDR_UBITMAP_READY;
+	atdr_log(ATDR_INFO, "[bitmap_server_setup] totalbitsset = %d\n", ubitmap_obj->uptill.total_bits_set);
+	atdr_log(ATDR_INFO, "[bitmap_server_setup] assigning bitmap state as READy \n");
+	ubitmap_obj->bitmap_state = ATDR_UBITMAP_READY;
 	return (0);
 }
 
 
-int ebdr_test_bit2(int num, char *arg)
+int atdr_test_bit2(int num, char *arg)
 {
 	ulong_t temp = num % 8;
 	char mask = (1 << (8 - 1 - temp));
@@ -181,18 +181,18 @@ int ebdr_test_bit2(int num, char *arg)
 }
 
 
-int ebdr_check_bit_set(unsigned long *bitmap_area, int pos)
+int atdr_check_bit_set(unsigned long *bitmap_area, int pos)
 {
 	int ret = 1, pnum;
 	char *paddr = (char *)bitmap_area;
 
 	pnum = pos >> (PAGE_SHIFT + 3);
 	if ((pnum * NUM_BITS_PER_PAGE) > MAX_BITS_LEN) {
-		ebdr_log(EBDR_FATAL, "ebdr_check_bit_set: out of bound access\n");
+		atdr_log(ATDR_FATAL, "atdr_check_bit_set: out of bound access\n");
 		return (0);
 	}
 	paddr = paddr + (pnum * NUM_BITS_PER_PAGE / 8);
-	ret = ebdr_test_bit2(pos & NUM_BITS_PER_PAGE_MASK, (char *)paddr);
+	ret = atdr_test_bit2(pos & NUM_BITS_PER_PAGE_MASK, (char *)paddr);
 	return (ret);
 }
 
@@ -221,26 +221,26 @@ int is_bit_set(unsigned long *bitmap_area, int pos)
 	return 0;
 }
 
-static void bitmap_server_destroy(struct ebdr_user_bitmap *ubitmap, int pid)
+static void bitmap_server_destroy(struct atdr_user_bitmap *ubitmap, int pid)
 {
-	ebdr_log(EBDR_INFO, "[bitmap_server_destroy] freeing bitmap...\n");
+	atdr_log(ATDR_INFO, "[bitmap_server_destroy] freeing bitmap...\n");
 	free(ubitmap->bitmap_area);
 	if (ubitmap->bmap_user == USER)
 	{
 		//clear active bitmap
-		ebdr_clear_active_bitmap(ebdr_disk_src_obj[pid].active_bitmap, ebdr_disk_src_obj[pid].bitmap_size);
+		atdr_clear_active_bitmap(atdr_disk_src_obj[pid].active_bitmap, atdr_disk_src_obj[pid].bitmap_size);
 	}
 	else {
 		//clear active bitmap backup
-		ebdr_clear_active_bitmap(ebdr_disk_src_obj[pid].active_bitmap_backup, ebdr_disk_src_obj[pid].bitmap_size);
+		atdr_clear_active_bitmap(atdr_disk_src_obj[pid].active_bitmap_backup, atdr_disk_src_obj[pid].bitmap_size);
 	}
 }
 
-struct ebdr_bitmap_operations bitmap_server_operations =
+struct atdr_bitmap_operations bitmap_server_operations =
 {
-	.ebdr_bitmap_create = bitmap_server_create,
-	.ebdr_bitmap_setup = bitmap_server_setup,
+	.atdr_bitmap_create = bitmap_server_create,
+	.atdr_bitmap_setup = bitmap_server_setup,
 	.load_bitmap_from_memory = server_bitmap_load_from_memory,
 	.get_total_bits_set = get_total_bits_set,
-	.ebdr_bitmap_destroy = bitmap_server_destroy
+	.atdr_bitmap_destroy = bitmap_server_destroy
 };

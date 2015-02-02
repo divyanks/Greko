@@ -1,5 +1,5 @@
-#ifndef EBDR_PARTNER_H
-#define EBDR_PARTNER_H
+#ifndef ATDR_PARTNER_H
+#define ATDR_PARTNER_H
 #include <Windows.h>
 
 #define MAX_PARTNERS 2048
@@ -57,7 +57,7 @@ partner_t all_partner_servers[MAX_PARTNERS];
 partner_t all_partner_clients[MAX_PARTNERS];
 
 int get_new_partner_client_id(void);
-void ebdr_partner_init(enum partner_mode_t partner_mode, struct partner *partner_obj);
+void atdr_partner_init(enum partner_mode_t partner_mode, struct partner *partner_obj);
 int is_client_partner_id_valid(int pid);
 int is_server_partner_id_valid(int pid);
 int mkpartner_from_db_on_client();

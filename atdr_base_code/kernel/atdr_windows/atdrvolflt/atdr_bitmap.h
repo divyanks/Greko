@@ -44,7 +44,7 @@ typedef enum user
 	USER	
 }BMAP_USER;
 
-typedef struct _EBDR_BITMAP
+typedef struct _ATDR_BITMAP
 {
 	char *bitmap_area;
 	char *bitmap_area_start;
@@ -61,8 +61,8 @@ typedef struct _EBDR_BITMAP
 	PVOID  MappedUserAddress;
 	PVOID  MappedUserAddressBackup;
 	PMDL   Mdl;
-}EBDR_BITMAP ,*PEBDR_BITMAP;
+}ATDR_BITMAP ,*PATDR_BITMAP;
 
-UINT32 ebdr_find_pos(EBDR_BITMAP *bitmap, sector_t addr);
-void ebdr_set_bits(PEBDR_BITMAP bitmap, int first, int last);
+UINT32 atdr_find_pos(ATDR_BITMAP *bitmap, sector_t addr);
+void atdr_set_bits(PATDR_BITMAP bitmap, int first, int last);
 

@@ -1,5 +1,5 @@
-#ifndef EBDR_RELATION_H
-#define EBDR_RELATION_H
+#ifndef ATDR_RELATION_H
+#define ATDR_RELATION_H
 
 #define MAX_RELATIONS 2048
 
@@ -12,8 +12,8 @@ enum rel_obj_state_t
 
 enum relation_mode_t
 {
-    EBDR_RELATION_SERVER,
-    EBDR_RELATION_CLIENT
+    ATDR_RELATION_SERVER,
+    ATDR_RELATION_CLIENT
 };
 
 enum relation_role_t
@@ -63,7 +63,7 @@ relation_t all_relation_clients[MAX_RELATIONS];
 
 extern int ps_count;
 extern int pc_count;
-void ebdr_relation_init(enum relation_mode_t relation_mode, relation_t *relation_obj, int pid);
+void atdr_relation_init(enum relation_mode_t relation_mode, relation_t *relation_obj, int pid);
 int mkrelation_from_db_on_client();
 int mkrelation_from_db_on_server();
 

@@ -5,9 +5,9 @@
 #include "..\Include\atdr_log.h"
 #include "..\Include\atdr_relation.h"
 
-void ebdr_relation_init(enum relation_mode_t relation_mode, relation_t *relation_obj, int pid)
+void atdr_relation_init(enum relation_mode_t relation_mode, relation_t *relation_obj, int pid)
 {
-    if(relation_mode == EBDR_RELATION_SERVER)
+    if(relation_mode == ATDR_RELATION_SERVER)
     {   
         relation_obj->ops = &relation_server_ops;
     }   

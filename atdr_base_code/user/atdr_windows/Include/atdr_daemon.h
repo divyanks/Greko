@@ -1,5 +1,5 @@
-#ifndef EBDR_DAEMON_H
-#define EBDR_DAEMON_H
+#ifndef ATDR_DAEMON_H
+#define ATDR_DAEMON_H
 
 #include <stdio.h>
 #include "atdr_fifo.h"
@@ -37,13 +37,13 @@ enum
 	USER,
 };
 
-struct ebdr_thread_t
+struct atdr_thread_t
 {
 	int pid;
 	unsigned long int bit_pos;
 	int logging_level;
 	int logging;
-	FILE *ebdrlog_fp;
+	FILE *atdrlog_fp;
 	char logStrng[LEVEL_NAME];
 };
 
@@ -51,7 +51,7 @@ struct ebdr_thread_t
 char str[CMD_LEN];
 #define LOG_PATH_LEN 128
 extern char tmp_log_path[LOG_PATH_LEN];
-extern struct ebdr_thread_t thread_params[MAX_DISKS + CNTRL_THREADS];
+extern struct atdr_thread_t thread_params[MAX_DISKS + CNTRL_THREADS];
 int prepare_and_send_ioctl_cmd(int cmd);
 void stop_work(char str[100]);
 int request_server_for_metadata(int client_pid);

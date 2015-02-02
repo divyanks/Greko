@@ -5,7 +5,7 @@
 #include "..\Include\atdr_replication_header.h"
 #include "..\Include\atdr_log.h"
 
-// extern FILE *ebdrlog_fp;
+// extern FILE *atdrlog_fp;
 
 void replic_hdr_server_create(enum rep_hdr_role_t rep_hdr_role, int server_pid)
 {
@@ -18,7 +18,7 @@ void replic_hdr_server_create(enum rep_hdr_role_t rep_hdr_role, int server_pid)
 	}
 	else
 	{
-		ebdr_log(EBDR_INFO, "MAX Replic header server objects reached !\n");
+		atdr_log(ATDR_INFO, "MAX Replic header server objects reached !\n");
 		stop_work("[replic_hdr_server_create] max replic header server objects reached");
 	}
 
@@ -27,13 +27,13 @@ void replic_hdr_server_create(enum rep_hdr_role_t rep_hdr_role, int server_pid)
 void replic_hdr_server_setup(unsigned long int bitmap_size, unsigned long int grain_size, 
 		unsigned long int chunk_size, int pid)
 {
-	ebdr_log(EBDR_INFO, "\n in replic_hdr_server_setup \n");
+	atdr_log(ATDR_INFO, "\n in replic_hdr_server_setup \n");
 	replic_hdr_server_obj[pid].bitmap_size = bitmap_size; 
 	replic_hdr_server_obj[pid].grain_size = grain_size; 	   
 	replic_hdr_server_obj[pid].chunk_size = chunk_size; 	
 	replic_hdr_server_obj[pid].partner_id = pid; 		
 	
-	ebdr_log(EBDR_INFO, "[server_setup] server_obj[%d]  bitmap_size: %lu grain_size:%lu chunk_size:%lu\n",
+	atdr_log(ATDR_INFO, "[server_setup] server_obj[%d]  bitmap_size: %lu grain_size:%lu chunk_size:%lu\n",
 			pid, replic_hdr_server_obj[pid].bitmap_size,
 			replic_hdr_server_obj[pid].grain_size,
 			replic_hdr_server_obj[pid].chunk_size);

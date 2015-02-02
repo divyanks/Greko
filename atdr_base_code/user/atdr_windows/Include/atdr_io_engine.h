@@ -1,5 +1,5 @@
-#ifndef _EBDR_IO_ENGINE_H
-#define _EBDR_IO_ENGINE_H
+#ifndef _ATDR_IO_ENGINE_H
+#define _ATDR_IO_ENGINE_H
 
 #include "atdr_replication_header.h"
 #include "atdr_replication.h"
@@ -19,8 +19,8 @@ enum owner_t
 	IO_CLIENT
 };
 
-struct ebdr_io_engine;
-/*  ebdr_engine_ops:
+struct atdr_io_engine;
+/*  atdr_engine_ops:
  *  io_engine_setup: setup function of io_engine
  *  do_chunk_read:
  *  do_chunk_write:
@@ -34,20 +34,20 @@ typedef struct handle_fd
 	SOCKET fd;
 }handle_fd_t;
 
-struct ebdr_io_engine_ops
+struct atdr_io_engine_ops
 {
 	void (*io_obj_create)(int pid);
 	int (*chunk_read)(handle_fd_t fd, char *buff, unsigned long int size, unsigned long int start_lba);
 	int (*chunk_write)(handle_fd_t fd, char *buff, unsigned long int size, unsigned long int start_lba);
-	void (*io_obj_destroy)(struct ebdr_io_engine *io_eng_obj);
+	void (*io_obj_destroy)(struct atdr_io_engine *io_eng_obj);
 };
 
 
-extern struct ebdr_io_engine_ops io_server_ops;
-extern struct ebdr_io_engine_ops file_ops;
-extern struct ebdr_io_engine_ops io_client_ops;
+extern struct atdr_io_engine_ops io_server_ops;
+extern struct atdr_io_engine_ops file_ops;
+extern struct atdr_io_engine_ops io_client_ops;
 /*
- *  ebdr_io_engine: This structure is used by the I/O Engine which will finally
+ *  atdr_io_engine: This structure is used by the I/O Engine which will finally
  *					do SCSI read/write
  *	src_disk: Source disk fd
  *  target_disk: Target disk fd
@@ -55,10 +55,10 @@ extern struct ebdr_io_engine_ops io_client_ops;
  *  lba: starting lba to be passed to the scsi read/write 
  *		lba = grain_size * grain_pos + chunk_size * chunk_pos
  *  owner: LOCAL / RELAY
- *  ops: ebdr_engine operations 
+ *  ops: atdr_engine operations 
  */
 
-struct ebdr_io_engine
+struct atdr_io_engine
 {
 	int src_disk_fd;
 	int target_disk_fd;
@@ -68,14 +68,14 @@ struct ebdr_io_engine
 	enum owner_t owner;
 	enum io_state_t obj_state;
 
-	struct ebdr_io_engine_ops *ops;
+	struct atdr_io_engine_ops *ops;
 };
 
-typedef struct ebdr_io_engine ebdr_io_engine_t;
+typedef struct atdr_io_engine atdr_io_engine_t;
 
-struct ebdr_io_engine io_obj;
-struct ebdr_io_engine io_server_obj[MAX_IO];
-struct ebdr_io_engine io_client_obj[MAX_IO];
+struct atdr_io_engine io_obj;
+struct atdr_io_engine io_server_obj[MAX_IO];
+struct atdr_io_engine io_client_obj[MAX_IO];
 void io_engine_init(enum owner_t owner, int pid);
 
 #endif

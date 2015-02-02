@@ -7,7 +7,7 @@
 #include "atdr_partner.h"
 
 
-// extern FILE *ebdrlog_fp;
+// extern FILE *atdrlog_fp;
 
 int get_bitmap(SOCKET sockfd, replic_header *rep_hdr_rcvd);
 

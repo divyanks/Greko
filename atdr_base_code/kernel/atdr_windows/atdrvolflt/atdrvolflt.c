@@ -4,20 +4,20 @@
 
 PDEVICE_OBJECT  ControlObj;
 
-NTSTATUS EbdrFltAddDevice(PDRIVER_OBJECT DriverObject, PDEVICE_OBJECT pdo)
+NTSTATUS atdrFltAddDevice(PDRIVER_OBJECT DriverObject, PDEVICE_OBJECT pdo)
 {
 	NTSTATUS Status;
 	PDEVICE_OBJECT  fdo;
 	//KEVENT event;
 	PVOL_INFO pVolInfo = (PVOL_INFO)ExAllocatePool(NonPagedPool, sizeof(VOL_INFO));
-	PEBDR_BITMAP pebdr_bitmap = ExAllocatePool(NonPagedPool, sizeof(EBDR_BITMAP));
+	PATDR_BITMAP patdr_bitmap = ExAllocatePool(NonPagedPool, sizeof(ATDR_BITMAP));
 	PDEVICE_EXTENSION pdx;
 	Status = IoCreateDevice(DriverObject,
 		sizeof(DEVICE_EXTENSION), NULL,
 		FILE_DEVICE_DISK, 0, FALSE, &fdo);
 	IoRegisterShutdownNotification(fdo);
 	if (!NT_SUCCESS(Status)) {
-		DbgPrint("EbdrFltAddDevice: Fialed IoCreateDevice in AddDevice \n");
+		DbgPrint("atdrFltAddDevice: Fialed IoCreateDevice in AddDevice \n");
 		return Status;
 	}
 	fdo->Flags |= DO_DIRECT_IO;
@@ -25,17 +25,17 @@ NTSTATUS EbdrFltAddDevice(PDRIVER_OBJECT DriverObject, PDEVICE_OBJECT pdo)
 	pdx->pdo = pdo;
 	pdx->fdo = fdo;
 	pdx->VolInfo = pVolInfo;
-	pVolInfo->ebdr_tracking_enabled = FALSE;
-	pdx->VolInfo->ebdr_bitmap = pebdr_bitmap;
+	pVolInfo->atdr_tracking_enabled = FALSE;
+	pdx->VolInfo->atdr_bitmap = patdr_bitmap;
 	fdo->Flags |= DO_POWER_PAGABLE;
 //	pdx->PagingPathCountEvent = &event;
-	KeInitializeSpinLock(&pebdr_bitmap->Lock);
-	KeInitializeSpinLock(&pebdr_bitmap->Lock_bm);
+	KeInitializeSpinLock(&patdr_bitmap->Lock);
+	KeInitializeSpinLock(&patdr_bitmap->Lock_bm);
 
 	pdx->LowerDeviceObject = IoAttachDeviceToDeviceStack(fdo, pdo);
 	if (!pdx->LowerDeviceObject)
     {
-		DbgPrint("EbdrFltAddDevice: Fialed IoCreateDevice in AddDevice \n");
+		DbgPrint("atdrFltAddDevice: Fialed IoCreateDevice in AddDevice \n");
 		return STATUS_INSUFFICIENT_RESOURCES;
     }
 	fdo->Flags &= ~DO_DEVICE_INITIALIZING;
@@ -46,7 +46,7 @@ NTSTATUS EbdrFltAddDevice(PDRIVER_OBJECT DriverObject, PDEVICE_OBJECT pdo)
 
 
 NTSTATUS
-EbdrFltSendToNextDriver(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
+atdrFltSendToNextDriver(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
 	NTSTATUS Status = STATUS_SUCCESS;
 	
@@ -63,7 +63,7 @@ EbdrFltSendToNextDriver(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 	return IoCallDriver(pdx->LowerDeviceObject, Irp);
 }
 
-NTSTATUS EbdrFltForwardIrpSynchronous(IN PDEVICE_OBJECT DeviceObject,
+NTSTATUS atdrFltForwardIrpSynchronous(IN PDEVICE_OBJECT DeviceObject,
 	IN PIRP Irp
 	
 	)
@@ -91,7 +91,7 @@ NTSTATUS EbdrFltForwardIrpSynchronous(IN PDEVICE_OBJECT DeviceObject,
 	// set a completion routine
 	//
 
-	IoSetCompletionRoutine(Irp, EbdrFltIrpCompletion,
+	IoSetCompletionRoutine(Irp, atdrFltIrpCompletion,
 		event, TRUE, TRUE, TRUE);
 
 	//
@@ -111,7 +111,7 @@ NTSTATUS EbdrFltForwardIrpSynchronous(IN PDEVICE_OBJECT DeviceObject,
 
 	return Status;
 
-} // end EbdrFltForwardIrpSynchronous()
+} // end atdrFltForwardIrpSynchronous()
 
 
 
@@ -120,7 +120,7 @@ NTSTATUS EbdrFltForwardIrpSynchronous(IN PDEVICE_OBJECT DeviceObject,
 	FILE_READ_ONLY_DEVICE | \
 	FILE_FLOPPY_DISKETTE    \
 	)
-VOID EbdrFltSyncFilterWithTarget(IN PDEVICE_OBJECT FilterDevice, IN PDEVICE_OBJECT TargetDevice)
+VOID atdrFltSyncFilterWithTarget(IN PDEVICE_OBJECT FilterDevice, IN PDEVICE_OBJECT TargetDevice)
 {
 	ULONG                   propFlags;
 
@@ -134,7 +134,7 @@ VOID EbdrFltSyncFilterWithTarget(IN PDEVICE_OBJECT FilterDevice, IN PDEVICE_OBJE
 
 
 NTSTATUS
-EbdrFltIrpCompletion(
+atdrFltIrpCompletion(
 IN PDEVICE_OBJECT DeviceObject,
 IN PIRP Irp,
 IN PVOID Context
@@ -169,7 +169,7 @@ STATUS_MORE_PORCESSING_REQUIRED
 	KeSetEvent(Event, IO_NO_INCREMENT, FALSE);
 	return(STATUS_MORE_PROCESSING_REQUIRED);
 
-} // end EbdrFltIrpCompletion()
+} // end atdrFltIrpCompletion()
 
 #define set_bit(nr, addr)    (void)test_and_set_bit(nr, addr)
 
@@ -189,7 +189,7 @@ int test_and_set_bit(int nr, void *addr)
 
 	return retval;
 }
-void ebdr_set_bits(PEBDR_BITMAP bitmap, int first, int last)
+void atdr_set_bits(PATDR_BITMAP bitmap, int first, int last)
 {
 	int i = 0;
 	unsigned long *bmap = NULL;
@@ -212,7 +212,7 @@ void ebdr_set_bits(PEBDR_BITMAP bitmap, int first, int last)
 
 //This address is in sector hence convert addr = address >> 9;
 //Grain_size is in bytes
-UINT32 ebdr_find_pos(EBDR_BITMAP *bitmap, sector_t addr)
+UINT32 atdr_find_pos(ATDR_BITMAP *bitmap, sector_t addr)
 {
 	UINT32 cur = 0;
 	UINT32 	 grain_size = bitmap->grain_size;
@@ -229,7 +229,7 @@ UINT32 ebdr_find_pos(EBDR_BITMAP *bitmap, sector_t addr)
 }
 
 
-NTSTATUS EbdrFltWrite(
+NTSTATUS atdrFltWrite(
 IN PDEVICE_OBJECT DeviceObject,
 IN PIRP Irp
 )
@@ -244,7 +244,7 @@ IN PIRP Irp
 	}
 	PIO_STACK_LOCATION  currentIrpStack = IoGetCurrentIrpStackLocation(Irp);
 	PDEVICE_EXTENSION   pdx = (PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
-	if (pdx->VolInfo->ebdr_tracking_enabled == TRUE)
+	if (pdx->VolInfo->atdr_tracking_enabled == TRUE)
 	{
 		DbgPrint("Length = %x   offset = %I64x\n", currentIrpStack->Parameters.Write.Length,
 			currentIrpStack->Parameters.Write.ByteOffset.QuadPart);
@@ -258,9 +258,9 @@ IN PIRP Irp
 		end_addr = (currentIrpStack->Parameters.Write.ByteOffset.QuadPart + currentIrpStack->Parameters.Write.Length) >> 9;
 
 		//Set the first argument so that Mdl on the device can be fetched and corresponding bit be set in the bitmap
-		first = ebdr_find_pos(pdx->VolInfo->ebdr_bitmap, start_addr);
-		last = ebdr_find_pos(pdx->VolInfo->ebdr_bitmap, end_addr);
-		ebdr_set_bits(pdx->VolInfo->ebdr_bitmap, first, last);
+		first = atdr_find_pos(pdx->VolInfo->atdr_bitmap, start_addr);
+		last = atdr_find_pos(pdx->VolInfo->atdr_bitmap, end_addr);
+		atdr_set_bits(pdx->VolInfo->atdr_bitmap, first, last);
 	}
 	/*
 	if(pdx->VolInfo->Tracking_Enabled == TRUE)
@@ -277,7 +277,7 @@ IN PIRP Irp
 }
 
 NTSTATUS
-EbdrFltDispatchPower(
+atdrFltDispatchPower(
 IN PDEVICE_OBJECT DeviceObject,
 IN PIRP Irp
 )
@@ -295,7 +295,7 @@ IN PIRP Irp
 }
 
 
-NTSTATUS EbdrFltStartDevice(
+NTSTATUS atdrFltStartDevice(
 IN PDEVICE_OBJECT DeviceObject,
 IN PIRP Irp
 )
@@ -303,9 +303,9 @@ IN PIRP Irp
 	PDEVICE_EXTENSION   pdx = (PDEVICE_EXTENSION)DeviceObject->DeviceExtension;;
 	NTSTATUS            Status = STATUS_SUCCESS;
 
-	Status = EbdrFltForwardIrpSynchronous(DeviceObject, Irp);
+	Status = atdrFltForwardIrpSynchronous(DeviceObject, Irp);
 
-	EbdrFltSyncFilterWithTarget(DeviceObject,
+	atdrFltSyncFilterWithTarget(DeviceObject,
 		pdx->LowerDeviceObject);
 	
 	Irp->IoStatus.Status = Status;
@@ -315,12 +315,12 @@ IN PIRP Irp
 	
 
 
-NTSTATUS EbdrFltRemoveDevice(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
+NTSTATUS atdrFltRemoveDevice(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
 	NTSTATUS            Status;
 	PDEVICE_EXTENSION   pDeviceExtension = (PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
 
-	Status = EbdrFltForwardIrpSynchronous(DeviceObject, Irp);
+	Status = atdrFltForwardIrpSynchronous(DeviceObject, Irp);
 
 	PDEVICE_OBJECT TargetDevObj = pDeviceExtension->LowerDeviceObject;
 	pDeviceExtension->LowerDeviceObject = NULL;
@@ -335,7 +335,7 @@ NTSTATUS EbdrFltRemoveDevice(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 }
 
 NTSTATUS
-EbdrFltDispatchPnp(
+atdrFltDispatchPnp(
 IN PDEVICE_OBJECT DeviceObject,
 IN PIRP Irp
 )
@@ -345,7 +345,7 @@ IN PIRP Irp
 	
 	switch (irpSp->MinorFunction) {
 	case IRP_MN_START_DEVICE:
-		Status = EbdrFltStartDevice(DeviceObject, Irp);
+		Status = atdrFltStartDevice(DeviceObject, Irp);
 		break;
 //	case IRP_MN_DEVICE_USAGE_NOTIFICATION:
 	//{
@@ -356,7 +356,7 @@ IN PIRP Irp
 		// UNICODE_STRING pagefileName;
 
 		 //if (irpStack->Parameters.UsageNotification.Type != DeviceUsageTypePaging) {
-		//	 Status = EbdrFltSendToNextDriver(DeviceObject, Irp);
+		//	 Status = atdrFltSendToNextDriver(DeviceObject, Irp);
 			// break; // out of case statement
 		 //}
 
@@ -375,10 +375,10 @@ IN PIRP Irp
 	//}
 	//	break;
 	case IRP_MN_REMOVE_DEVICE:
-		Status = EbdrFltRemoveDevice(DeviceObject, Irp);
+		Status = atdrFltRemoveDevice(DeviceObject, Irp);
 		break;
 	default:
-		Status = EbdrFltStartDevice(DeviceObject, Irp);
+		Status = atdrFltStartDevice(DeviceObject, Irp);
 	}
 	return Status;
 }
@@ -395,7 +395,7 @@ DriverEntry (
 	UNREFERENCED_PARAMETER(RegistryPath);
 	UNICODE_STRING nameString, linkString;
 	
-	RtlInitUnicodeString(&nameString, L"\\Device\\ebdrvolflt");
+	RtlInitUnicodeString(&nameString, L"\\Device\\atdrvolflt");
 	status = IoCreateDevice(
 		DriverObject,
 		0,
@@ -409,7 +409,7 @@ DriverEntry (
 		DbgPrint("DriverEntry failed: IoCreateDevice fail to create device\n");
 		return status;
 	}
-	RtlInitUnicodeString(&linkString, L"\\DosDevices\\ebdrvolflt");
+	RtlInitUnicodeString(&linkString, L"\\DosDevices\\atdrvolflt");
 	status = IoCreateSymbolicLink(&linkString, &nameString);
 	if (!NT_SUCCESS(status))
 	{
@@ -422,20 +422,20 @@ DriverEntry (
 		ulIndex <= IRP_MJ_MAXIMUM_FUNCTION;
 		ulIndex++, dispatch++) 
 	{
-		*dispatch = EbdrFltSendToNextDriver;
+		*dispatch = atdrFltSendToNextDriver;
 	}
-	DriverObject->DriverExtension->AddDevice = EbdrFltAddDevice;
-	DriverObject->DriverUnload = EbdrFltUnload;
-	DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = EbdrFltDeviceControl;
-	DriverObject->MajorFunction[IRP_MJ_WRITE] = EbdrFltWrite;
-	DriverObject->MajorFunction[IRP_MJ_PNP] = EbdrFltDispatchPnp;
-	DriverObject->MajorFunction[IRP_MJ_POWER] = EbdrFltDispatchPower;
-	DriverObject->MajorFunction[IRP_MJ_SHUTDOWN] = EbdrFltShutdownFlush;
-	DriverObject->MajorFunction[IRP_MJ_FLUSH_BUFFERS] = EbdrFltShutdownFlush;
+	DriverObject->DriverExtension->AddDevice = atdrFltAddDevice;
+	DriverObject->DriverUnload = atdrFltUnload;
+	DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = atdrFltDeviceControl;
+	DriverObject->MajorFunction[IRP_MJ_WRITE] = atdrFltWrite;
+	DriverObject->MajorFunction[IRP_MJ_PNP] = atdrFltDispatchPnp;
+	DriverObject->MajorFunction[IRP_MJ_POWER] = atdrFltDispatchPower;
+	DriverObject->MajorFunction[IRP_MJ_SHUTDOWN] = atdrFltShutdownFlush;
+	DriverObject->MajorFunction[IRP_MJ_FLUSH_BUFFERS] = atdrFltShutdownFlush;
 	return STATUS_SUCCESS;
 }
 
-NTSTATUS EbdrFltShutdownFlush(
+NTSTATUS atdrFltShutdownFlush(
 	IN PDEVICE_OBJECT DeviceObject,
 	IN PIRP Irp
 	)
@@ -445,7 +445,7 @@ NTSTATUS EbdrFltShutdownFlush(
 	return IoCallDriver(pdx->LowerDeviceObject, Irp);
 }
 
-NTSTATUS EbdrFltDeviceControl(
+NTSTATUS atdrFltDeviceControl(
 	IN PDEVICE_OBJECT DeviceObject,
 	IN PIRP Irp
 	)
@@ -483,33 +483,33 @@ NTSTATUS EbdrFltDeviceControl(
 			}
 			IoSkipCurrentIrpStackLocation(Irp);
 			status = IoCallDriver(pdx->LowerDeviceObject, Irp);
-			//EbdrFltStartDevice(DeviceObject, Irp); We got a panic when trying to mount the devices
+			//atdrFltStartDevice(DeviceObject, Irp); We got a panic when trying to mount the devices
 			break;
 		}
-		case EBDRCTL_DEV_CREATE:
+		case ATDRCTL_DEV_CREATE:
 		{
 						
-			PEBDR_BITMAP ebdr_bitmap = pVolInfo->ebdr_bitmap;
+			PATDR_BITMAP atdr_bitmap = pVolInfo->atdr_bitmap;
 			PVOID  MappedUserAddress = NULL;
 			IOCTL *ioctl = (IOCTL *)Irp->AssociatedIrp.SystemBuffer;
 
-			ebdr_bitmap->bitmap_size = ioctl->u_bitmap_size;
-			ebdr_bitmap->grain_size = ioctl->u_grain_size;
+			atdr_bitmap->bitmap_size = ioctl->u_bitmap_size;
+			atdr_bitmap->grain_size = ioctl->u_grain_size;
 						
-			ebdr_bitmap->total_num_bits = ioctl->u_bitmap_size * 8;
+			atdr_bitmap->total_num_bits = ioctl->u_bitmap_size * 8;
 
-			if (ebdr_bitmap->bitmap_size > 4 * 4096)
-				ebdr_bitmap->bitmap_size = 4 * 4096;
+			if (atdr_bitmap->bitmap_size > 4 * 4096)
+				atdr_bitmap->bitmap_size = 4 * 4096;
 			if (PsGetCurrentThread() == Irp->Tail.Overlay.Thread)
 			{
 				POUTPUT_CREATE Output = (POUTPUT_CREATE)Irp->AssociatedIrp.SystemBuffer;
-				if (pdx->VolInfo->ebdr_tracking_enabled == FALSE)
+				if (pdx->VolInfo->atdr_tracking_enabled == FALSE)
 				{
 
-					pdx->VolInfo->ebdr_tracking_enabled = TRUE;
+					pdx->VolInfo->atdr_tracking_enabled = TRUE;
 					status = MapBufferForUserModeUse(pVolInfo, &MappedUserAddress);
-					ebdr_bitmap->MappedUserAddress = MappedUserAddress;
-					ebdr_bitmap->MappedUserAddressBackup = (char *)ebdr_bitmap->MappedUserAddress + ebdr_bitmap->bitmap_size;
+					atdr_bitmap->MappedUserAddress = MappedUserAddress;
+					atdr_bitmap->MappedUserAddressBackup = (char *)atdr_bitmap->MappedUserAddress + atdr_bitmap->bitmap_size;
 
 					//		RtlCopyMemory(ioctl->active_bitmap, &MappedUserAddress, 4);
 
@@ -518,17 +518,17 @@ NTSTATUS EbdrFltDeviceControl(
 
 					Irp->IoStatus.Information = sizeof(OUTPUT_CREATE);
 				} else {
-					ebdr_bitmap->Mdl = IoAllocateMdl(ebdr_bitmap->bitmap_area_start, 2 * ebdr_bitmap->bitmap_size, FALSE, FALSE, OPTIONAL NULL);
+					atdr_bitmap->Mdl = IoAllocateMdl(atdr_bitmap->bitmap_area_start, 2 * atdr_bitmap->bitmap_size, FALSE, FALSE, OPTIONAL NULL);
 					__try {
-						MmProbeAndLockPages(ebdr_bitmap->Mdl, KernelMode, IoWriteAccess);
-						ebdr_bitmap->MappedUserAddress = MmMapLockedPagesSpecifyCache(ebdr_bitmap->Mdl, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
-						Output->MappedUserAddress = ebdr_bitmap->MappedUserAddress;
+						MmProbeAndLockPages(atdr_bitmap->Mdl, KernelMode, IoWriteAccess);
+						atdr_bitmap->MappedUserAddress = MmMapLockedPagesSpecifyCache(atdr_bitmap->Mdl, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
+						Output->MappedUserAddress = atdr_bitmap->MappedUserAddress;
 						Irp->IoStatus.Information = sizeof(OUTPUT_CREATE);
 					}
 					__except (EXCEPTION_EXECUTE_HANDLER)
 					{
 						DbgPrint("Exception occured while mapping pages to user mode\n");
-						IoFreeMdl(ebdr_bitmap->Mdl);
+						IoFreeMdl(atdr_bitmap->Mdl);
 						Irp->IoStatus.Status = STATUS_DEVICE_NOT_READY;
 						Output->MappedUserAddress = NULL;
 						Irp->IoStatus.Information = sizeof(OUTPUT_CREATE);
@@ -539,12 +539,12 @@ NTSTATUS EbdrFltDeviceControl(
 			IoCompleteRequest(Irp, IO_NO_INCREMENT);
 			break;
 		}
-		case EBDRCTL_GET_USER:
+		case ATDRCTL_GET_USER:
 		{
 			PDEVICE_EXTENSION  pdx = (PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
 			PVOL_INFO pVolInfo = pdx->VolInfo;
-			PEBDR_BITMAP ebdr_bitmap = pVolInfo->ebdr_bitmap;
-			BMAP_USER user = ebdr_bitmap->bmap_user;
+			PATDR_BITMAP atdr_bitmap = pVolInfo->atdr_bitmap;
+			BMAP_USER user = atdr_bitmap->bmap_user;
 			POUTPUT_USER Output = (POUTPUT_USER)Irp->AssociatedIrp.SystemBuffer;
 			if (user == KERNEL)
 			{
@@ -558,44 +558,44 @@ NTSTATUS EbdrFltDeviceControl(
 			IoCompleteRequest(Irp, IO_NO_INCREMENT);
 			break;
 		}
-		case EBDR_FLIP_BITMAP_AREA:
+		case ATDR_FLIP_BITMAP_AREA:
 		{
 			PDEVICE_EXTENSION  pdx = (PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
 			PVOL_INFO pVolInfo = pdx->VolInfo;
-			PEBDR_BITMAP ebdr_bitmap = pVolInfo->ebdr_bitmap;		
-			ebdr_bitmap->Mdl = NULL;
-			KeAcquireSpinLock(&ebdr_bitmap->Lock, &OldIrql);		 //If the current user of Bitmap is USER
-			if (ebdr_bitmap->bmap_user == USER) {
+			PATDR_BITMAP atdr_bitmap = pVolInfo->atdr_bitmap;		
+			atdr_bitmap->Mdl = NULL;
+			KeAcquireSpinLock(&atdr_bitmap->Lock, &OldIrql);		 //If the current user of Bitmap is USER
+			if (atdr_bitmap->bmap_user == USER) {
 				 //Change the bitmap_area to the area e.g.
-				 ebdr_bitmap->bitmap_area = ebdr_bitmap->bitmap_area_start;
+				 atdr_bitmap->bitmap_area = atdr_bitmap->bitmap_area_start;
 						//Change it to the Kernel e.g. Userlan need to use teh backup area
-				 ebdr_bitmap->bmap_user = KERNEL;
+				 atdr_bitmap->bmap_user = KERNEL;
 			}
 			else 
 			{
 					 //Change the bitmap_area to the backup area e.g.
-				 ebdr_bitmap->bitmap_area = ebdr_bitmap->bitmap_area_backup;
+				 atdr_bitmap->bitmap_area = atdr_bitmap->bitmap_area_backup;
 
 			 //Change it to the User e.g. Now userlan code can use this area
-				 ebdr_bitmap->bmap_user = USER;
+				 atdr_bitmap->bmap_user = USER;
 			}
 
-			KeReleaseSpinLock(&ebdr_bitmap->Lock, OldIrql);
+			KeReleaseSpinLock(&atdr_bitmap->Lock, OldIrql);
 			Irp->IoStatus.Status = status;
 			IoCompleteRequest(Irp, IO_NO_INCREMENT);
 			break;
 			
 		}
-		case EBDRCTL_DEV_DESTROY:
+		case ATDRCTL_DEV_DESTROY:
 		{
-			PEBDR_BITMAP ebdr_bitmap = pVolInfo->ebdr_bitmap;
+			PATDR_BITMAP atdr_bitmap = pVolInfo->atdr_bitmap;
 			
-			if (pVolInfo->ebdr_tracking_enabled == TRUE)
+			if (pVolInfo->atdr_tracking_enabled == TRUE)
 			{
 
-				MmUnmapLockedPages(ebdr_bitmap->MappedUserAddress, ebdr_bitmap->Mdl);
-				//IoFreeMdl(ebdr_bitmap->Mdl);
-				ExFreePoolWithTag(ebdr_bitmap->bitmap_area_start, 'mtiB');
+				MmUnmapLockedPages(atdr_bitmap->MappedUserAddress, atdr_bitmap->Mdl);
+				//IoFreeMdl(atdr_bitmap->Mdl);
+				ExFreePoolWithTag(atdr_bitmap->bitmap_area_start, 'mtiB');
 				Irp->IoStatus.Status = status;
 				IoCompleteRequest(Irp, IO_NO_INCREMENT);
 			}
@@ -622,7 +622,7 @@ NTSTATUS EbdrFltDeviceControl(
 NTSTATUS  MapBufferForUserModeUse(PVOL_INFO pVolInfo, void **MappedUserAddress)
 {
 	NTSTATUS status = STATUS_SUCCESS;
-	PEBDR_BITMAP ebdr_bitmap = pVolInfo->ebdr_bitmap;
+	PATDR_BITMAP atdr_bitmap = pVolInfo->atdr_bitmap;
 	PHYSICAL_ADDRESS    lowAddress;
 	PHYSICAL_ADDRESS    highAddress;
 	SIZE_T              totalBytes;
@@ -630,38 +630,38 @@ NTSTATUS  MapBufferForUserModeUse(PVOL_INFO pVolInfo, void **MappedUserAddress)
 	highAddress.QuadPart = 0xFFFFFFFFFFFFFFFF;
 	totalBytes = 4 * 4096 * 2;
 
-	ebdr_bitmap->bitmap_area_start = ExAllocatePoolWithTag(NonPagedPool, 2 * ebdr_bitmap->bitmap_size,'mtiB');
-	RtlZeroMemory(ebdr_bitmap->bitmap_area_start, 2 * ebdr_bitmap->bitmap_size);
-	ebdr_bitmap->Mdl = IoAllocateMdl(ebdr_bitmap->bitmap_area_start, 2 * ebdr_bitmap->bitmap_size, FALSE, FALSE, OPTIONAL NULL);
-	if (ebdr_bitmap->Mdl == NULL)
+	atdr_bitmap->bitmap_area_start = ExAllocatePoolWithTag(NonPagedPool, 2 * atdr_bitmap->bitmap_size,'mtiB');
+	RtlZeroMemory(atdr_bitmap->bitmap_area_start, 2 * atdr_bitmap->bitmap_size);
+	atdr_bitmap->Mdl = IoAllocateMdl(atdr_bitmap->bitmap_area_start, 2 * atdr_bitmap->bitmap_size, FALSE, FALSE, OPTIONAL NULL);
+	if (atdr_bitmap->Mdl == NULL)
 	{
 		DbgPrint("MapBufferForUserModeUse: Failed to Allocate mdl");
-		ExFreePoolWithTag(ebdr_bitmap->bitmap_area_start, 'mtiB');
+		ExFreePoolWithTag(atdr_bitmap->bitmap_area_start, 'mtiB');
 		return STATUS_INSUFFICIENT_RESOURCES;
 	}
 	
-	ebdr_bitmap->bitmap_area = ebdr_bitmap->bitmap_area_start;
-	ebdr_bitmap->bmap_user = KERNEL;
-	ebdr_bitmap->bitmap_area_backup = ebdr_bitmap->bitmap_area + ebdr_bitmap->bitmap_size;
+	atdr_bitmap->bitmap_area = atdr_bitmap->bitmap_area_start;
+	atdr_bitmap->bmap_user = KERNEL;
+	atdr_bitmap->bitmap_area_backup = atdr_bitmap->bitmap_area + atdr_bitmap->bitmap_size;
 	
-	//ebdr_bitmap->Mdl = MmAllocatePagesForMdl(lowAddress, highAddress, lowAddress, totalBytes);
+	//atdr_bitmap->Mdl = MmAllocatePagesForMdl(lowAddress, highAddress, lowAddress, totalBytes);
 	__try	
 	{
-		MmProbeAndLockPages(ebdr_bitmap->Mdl, KernelMode, IoWriteAccess);
-		*MappedUserAddress = MmMapLockedPagesSpecifyCache(ebdr_bitmap->Mdl, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
+		MmProbeAndLockPages(atdr_bitmap->Mdl, KernelMode, IoWriteAccess);
+		*MappedUserAddress = MmMapLockedPagesSpecifyCache(atdr_bitmap->Mdl, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
 	}
 	__except (EXCEPTION_EXECUTE_HANDLER)
 	{
 		DbgPrint("Exception occured while mapping pages to user mode\n");
-		IoFreeMdl(ebdr_bitmap->Mdl);
-		ExFreePoolWithTag(ebdr_bitmap->bitmap_area_start, 'mtiB');
+		IoFreeMdl(atdr_bitmap->Mdl);
+		ExFreePoolWithTag(atdr_bitmap->bitmap_area_start, 'mtiB');
 		status = STATUS_INSUFFICIENT_RESOURCES;
 	}
 	return status;
 }
 
 
-void EbdrFltUnload(
+void atdrFltUnload(
 	IN PDRIVER_OBJECT DriverObject
 	)
 {
@@ -677,13 +677,13 @@ void EbdrFltUnload(
 		PDEVICE_EXTENSION  pdx = NULL;
 		pdx = (PDEVICE_EXTENSION)fdo->DeviceExtension;
 		PVOL_INFO pVolInfo = pdx->VolInfo;
-		PEBDR_BITMAP ebdr_bitmap = pVolInfo->ebdr_bitmap;
+		PATDR_BITMAP atdr_bitmap = pVolInfo->atdr_bitmap;
 
 
 		if (pVolInfo)
 		{
-			IoFreeMdl(ebdr_bitmap->Mdl);
-			ExFreePoolWithTag(ebdr_bitmap->bitmap_area_start, 'mtiB');
+			IoFreeMdl(atdr_bitmap->Mdl);
+			ExFreePoolWithTag(atdr_bitmap->bitmap_area_start, 'mtiB');
 		}
 		//Move to the next DeviceObject in the List of drivers
 		if (DriverObject && DriverObject->DeviceObject)
