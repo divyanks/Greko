@@ -5,3 +5,16 @@ bower_components
 tmp
 .DS_Store
 .idea
+
+*.sdf
+*.suo
+*.o
+*.ilk
+*.pdb
+cscope*
+*.log
+*.sln
+*.filters
+*.user
+*.tlog
+*.vcx*
