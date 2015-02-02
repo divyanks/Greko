@@ -78,7 +78,7 @@ int server_bitmap_load_from_memory(struct atdr_user_bitmap *ubitmap_obj, int ser
 	int ret;
 
 	ioctl_obj.index = server_pid + 1;
-    strcpy(ioctl_obj.src_disk, atdr_disk_src_obj[server_pid].name);
+    strcpy(ioctl_obj.src_disk, ebdr_disk_src_obj[server_pid].name);
 	ret = prepare_and_send_ioctl_cmd(ATDRCTL_GET_USER);
 	if (ret < 0)
 	{

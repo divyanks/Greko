@@ -202,7 +202,7 @@ void *replic_thread_init(void *args)
 
 
 			HANDLE hndle;
-			hndle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)send_recv_handler, &sockfd_pid_var[pid], 0, &send_recv_tid);
+			hndle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)send_recv_handler, &sockfd_pid_var, 0, &send_recv_tid);
 
 			if (hndle == NULL)
 				printf("could not create replication thread, error: %d.\n", GetLastError());
